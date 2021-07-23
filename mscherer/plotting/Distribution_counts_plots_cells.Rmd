@@ -1,0 +1,272 @@
+---
+title: "Jurkat.vs.K562.CELLS"
+author: "Agostina Bianchi"
+date: "4/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+library(dplyr)
+```
+
+## Loding S3 + Labels
+### Dataset s3
+```{r}
+s3 <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/MyTables/Sample3.cells.dna.2021.03.txt", 
+                 sep="\t", 
+                 header=T)
+rownames(s3) <- sub("*-1", "", rownames(s3))
+```
+
+### Labels
+```{r}
+# labels
+Clus3 <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/MyTables/s3.clustering.color.2021.03.txt", sep= "\t", header=T)
+s3 <- s3[rownames(s3) %in% rownames(Clus3),]
+
+# check label order
+all(rownames(s3) == rownames(Clus3))
+```
+
+## Loding s3 filtered + Labels
+### Dataset s3.60
+```{r}
+s3.60 <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/Myanalysis/Michael_files/data_Sample3_filtered.tsv", 
+                 sep="\t", 
+                 header=T)
+rownames(s3.60) <- sub("*-1", "", rownames(s3.60))
+```
+## Labels
+```{r}
+# labels
+Clus3.60 <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/MyTables/cluster_colors_s3_filtered.txt", sep= "\t", header=T)
+s3.60 <- s3.60[rownames(s3.60) %in% rownames(Clus3.60),]
+
+# check label order
+all(rownames(s3.60) == rownames(Clus3.60))
+```
+
+## Loding s3 Aci filtered + Labels
+### Dataset s3.Aci
+```{r}
+s3.Aci <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/Myanalysis/Michael_files/data_Sample3_filtered_Aci.tsv", 
+                 sep="\t", 
+                 header=T)
+rownames(s3.Aci) <- sub("*-1", "", rownames(s3.Aci))
+```
+
+## Labels
+```{r}
+# labels
+Clus3.Aci <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/New_Cluster_Data/New_clusters_Michael/cluster_assignment_ok.tsv", header = T)
+rownames(Clus3.Aci) <- Clus3.Aci$Barcode
+rownames(Clus3.Aci) <- sub("*-1", "", rownames(Clus3.Aci))
+
+Clus3.Aci <- Clus3.Aci[!(grepl("Mixed", Clus3.Aci$CellType)),]
+s3.Aci <- s3.Aci[rownames(Clus3.Aci),]
+
+
+# check label order
+all(rownames(s3.Aci) == rownames(Clus3.Aci))
+
+Clus3.Aci$Color <- "grey"
+Clus3.Aci[Clus3.Aci$CellType == "Jurkat", 4] <- "steelblue3"
+Clus3.Aci[Clus3.Aci$CellType == "K562", 4] <- "indianred2"
+```
+
+## Loding s2 + Labels
+### Dataset s2
+```{r}
+s2 <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/MyTables/Sample2.cells.dna.2021.03.txt", 
+                 sep="\t", 
+                 header=T)
+rownames(s2) <- sub("*-1", "", rownames(s2))
+```
+
+## Labels
+```{r}
+# labels
+Clus2 <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/MyTables/s2.clustering.color.2021.03.txt", 
+                    sep= "\t", 
+                    header=T)
+s2 <- s2[rownames(s2) %in% rownames(Clus2),]
+
+# check label order
+all(rownames(s2) == rownames(Clus2))
+```
+## Amplicon labels
+```{r}
+Amplicon.type <- read.table("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/MyTables/Summary.amplicons.labels.txt", sep = "\t", header= T)
+```
+
+
+############ SELECT HIGH CONFIDENCE AMPLICONS
+```{r, eval= F}
+Amplicon.type <- Amplicon.type[!(Amplicon.type$X20.with.highest.confidence == "no"),]
+
+s3 <- s3[,colnames(s3) %in% rownames(Amplicon.type)]
+s3.60 <- s3.60[,colnames(s3.60) %in% rownames(Amplicon.type)]
+s3.Aci <- s3.Aci[,colnames(s3.Aci) %in% rownames(Amplicon.type)]
+s2 <- s2[,colnames(s2) %in% rownames(Amplicon.type)]
+```
+
+```{r}
+
+s3.ok <- s3[,rownames(Amplicon.type)]
+all(rownames(Amplicon.type) == colnames(s3.ok))
+
+s3.60.ok <- s3.60[,rownames(Amplicon.type)]
+all(rownames(Amplicon.type) == colnames(s3.60.ok))
+
+s3.Aci.ok <- s3.Aci[,rownames(Amplicon.type)]
+all(rownames(Amplicon.type) == colnames(s3.Aci.ok))
+
+s2.ok <- s2[,rownames(Amplicon.type)]
+all(rownames(Amplicon.type) == colnames(s2.ok))
+```
+
+
+```{r}
+#### s3-------------------------------------------------------
+
+# x total counts
+total_count_amp_cell_s3 <- apply(s3.ok,1,sum)
+log_total_count_amp_cell_s3 <- log10(total_count_amp_cell_s3)
+
+# y log (count/amp)
+s3.y <- s3.ok %>% +1 %>% log10()
+
+
+#### s3.60-------------------------------------------------------
+
+# x total counts
+total_count_amp_cell_s3.60 <- apply(s3.60.ok,1,sum)
+log_total_count_amp_cell_s3.60 <- log10(total_count_amp_cell_s3.60)
+
+# y log (count/amp)
+s3.60.y <- s3.60.ok %>% +1 %>% log10()
+
+
+#### s3.Aci-------------------------------------------------------
+
+# x total counts
+total_count_amp_cell_s3.Aci <- apply(s3.Aci.ok,1,sum)
+log_total_count_amp_cell_s3.Aci <- log10(total_count_amp_cell_s3.Aci)
+
+# y log (count/amp)
+s3.Aci.y <- s3.Aci.ok %>% +1 %>% log10()
+
+
+#### s3.Aci-------------------------------------------------------
+
+# x total counts
+total_count_amp_cell_s2 <- apply(s2.ok,1,sum)
+log_total_count_amp_cell_s2 <- log10(total_count_amp_cell_s2)
+
+# y log (count/amp)
+s2.y <- s2.ok %>% +1 %>% log10()
+```
+
+
+
+#Plot por all the amplicons
+```{r}
+
+### Plot-------------------------------------------------------------
+
+setwd("/home/abianchi/Documents/Mission_Bio_Cell_lines/MyFiles/Myanalysis")
+pdf("Total.reads.ampl.Jurkat&K652.new.labels.new.clustering.06.2021.Mixed.remove.pdf", width = 12, height = 5)
+par(mfrow = c(2,4))
+
+for (i in 1:ncol(s3.ok)) 
+  {
+
+#### s3-------------------------------------------------------
+
+#plot
+plot(x = log_total_count_amp_cell_s3, y= s3.y[,i], 
+     ylab = "Log(Counts/ampl)",
+     xlab = "log(TotalCounts)",
+     col = as.character(Clus3$Color),
+     pch = 20,
+     cex = 0.5, cex.lab=0.7, cex.axis=0.7)
+
+title(paste(colnames(s3.ok[i]),Amplicon.type[match(colnames(s3.ok[i]), rownames(Amplicon.type)), 1]), 
+      sub = paste("s3", nrow(s3.ok), "cells","(", "is.drop.out:", Amplicon.type[i,15], "is.high.conf.amp:", Amplicon.type[i,11],")"), 
+      cex.main = 0.9, cex.sub = 0.8) 
+
+lines(lowess(x = log_total_count_amp_cell_s3[Clus3$Color == "steelblue3"],  y = s3.y[Clus3$Color == "steelblue3", i]), col= "blue")
+lines(lowess(x = log_total_count_amp_cell_s3[Clus3$Color == "indianred2"],  y = s3.y[Clus3$Color == "indianred2", i]), col= "red")
+
+legend_vector <- c("Jurkat", "K562")
+legend("bottomright",inset=.02,box.col = NA, cex=0.75,legend_vector,fill = c("steelblue3","indianred2"))
+
+#### s3.60-------------------------------------------------------
+
+#plot
+plot(x = log_total_count_amp_cell_s3.60, y= s3.60.y[,i], 
+     ylab = "Log(Counts/ampl)",
+     xlab = "log(TotalCounts)",
+     col = as.character(Clus3.60$Color),
+     pch = 20,
+     cex = 0.5, cex.lab=0.7, cex.axis=0.7)
+
+title(paste(colnames(s3.60.ok[i]), Amplicon.type[match(colnames(s3.60.ok[i]), rownames(Amplicon.type)), 1]), 
+      sub = paste("s3.60", nrow(s3.60.ok), "cells", "(", "is.drop.out:", Amplicon.type[i,15], "is.high.conf.amp:", Amplicon.type[i,11],")"),
+      cex.main = 0.9, cex.sub = 0.8)
+
+lines(lowess(x = log_total_count_amp_cell_s3.60[Clus3.60$Color == "steelblue3"],  y = s3.60.y[Clus3.60$Color == "steelblue3", i]), col= "blue")
+lines(lowess(x = log_total_count_amp_cell_s3.60[Clus3.60$Color == "indianred2"],  y = s3.60.y[Clus3.60$Color == "indianred2", i]), col= "red")
+
+legend_vector <- c("Jurkat", "K562")
+legend("bottomright",inset=.02,box.col = NA, cex=0.8,legend_vector,fill = c("steelblue3","indianred2"))
+
+
+#### s3.Aci-------------------------------------------------------
+
+#plot
+plot(x = log_total_count_amp_cell_s3.Aci, y= s3.Aci.y[,i], 
+     ylab = "Log(Counts/ampl)",
+     xlab = "log(TotalCounts)",
+     col = as.character(Clus3.Aci$Color),
+     pch = 20,
+     cex = 0.5, cex.lab=0.7, cex.axis=0.7)
+
+title(paste(colnames(s3.Aci.ok[i]), Amplicon.type[match(colnames(s3.Aci.ok[i]), rownames(Amplicon.type)), 1]), 
+      sub = paste("s3.Aci", nrow(s3.Aci.ok), "cells", "(", "is.drop.out:", Amplicon.type[i,15], "is.high.conf.amp:",Amplicon.type[i,11],")"),
+      cex.main = 0.9, cex.sub = 0.8)
+
+lines(lowess(x = log_total_count_amp_cell_s3.Aci[Clus3.Aci$Color == "steelblue3"],  y = s3.Aci.y[Clus3.Aci$Color == "steelblue3", i]), col= "blue")
+lines(lowess(x = log_total_count_amp_cell_s3.Aci[Clus3.Aci$Color == "indianred2"],  y = s3.Aci.y[Clus3.Aci$Color == "indianred2", i]), col= "red")
+
+legend_vector <- c("Jurkat", "K562")
+legend("bottomright",inset=.02,box.col = NA, cex=0.8,legend_vector,fill = c("steelblue3","indianred2"))
+
+#### s2-------------------------------------------------------
+
+#plot
+plot(x = log_total_count_amp_cell_s2, y= s2.y[,i], 
+     ylab = "Log(Counts/ampl)",
+     xlab = "log(TotalCounts)",
+     col = as.character(Clus2$Color),
+     pch = 20,
+     cex = 0.5, cex.lab=0.7, cex.axis=0.7)
+
+title(paste(colnames(s2.ok[i]), Amplicon.type[match(colnames(s2.ok[i]), rownames(Amplicon.type)), 1]), 
+      sub = paste("s2", nrow(s2.ok), "cells", "(", "is.drop.out:", Amplicon.type[i,15], "is.high.conf.amp:",Amplicon.type[i,11],")"),
+      cex.main = 0.9, cex.sub = 0.8)
+
+lines(lowess(x = log_total_count_amp_cell_s2[Clus2$Color == "violetred4"],  y = s2.y[Clus2$Color == "violetred4", i]), col= "violetred4")
+lines(lowess(x = log_total_count_amp_cell_s2[Clus2$Color == "sienna1"],  y = s2.y[Clus2$Color == "sienna1", i]), col= "sienna1")
+
+legend_vector <- c("Jurkat", "K562")
+legend("bottomright",inset=.02,box.col = NA, cex=0.8,legend_vector,fill = c("violetred4","sienna1"))
+}
+
+dev.off()
+```
