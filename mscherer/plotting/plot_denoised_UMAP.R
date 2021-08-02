@@ -1,3 +1,8 @@
+############## plot_denoised_UMAP.R ##############
+#' Since the output of the autoencoder is a matrix of mixture proportions (values between 0 and 1), this matrix can also 
+#' be visualized in two-dimensional space. Here, we show this for UMAPs and PCA plots. Additional inputs are
+#' the original read count matrix, the cell assignment to cell types, and the amplicon information.
+
 library(Seurat)
 library(ggplot2)
 library(pheatmap)

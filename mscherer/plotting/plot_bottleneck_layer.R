@@ -1,3 +1,7 @@
+############## plot_bottleneck_layer.R ##############
+#' Using this script, one can visualize the bottleneck layer of the methylation autoencoder in a two dimensional UMAP or PCA
+#' plot. Additional inputs to the script are the assignment of cells to cell types and the input read count file.
+
 library(ggfortify)
 sample <- 'Sample5_80_percent'
 bottleneck.layer <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/bottleneck.csv'),

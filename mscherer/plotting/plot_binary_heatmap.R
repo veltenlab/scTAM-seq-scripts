@@ -1,3 +1,8 @@
+############## plot_binary_heatmap.R ##############
+#' This script is used to plot a binary heatmap of the read counts. A read cutoff has to be specified (default 10)
+#' to differentiate between presence and absence of read counts, i.e., DNA methylation. Additionally, the read count
+#' file and the assignment of cells to clusters has to be specified.
+
 library(pheatmap)
 cut.off <- 10
 sample <- 'Sample5_80_percent'

@@ -1,3 +1,8 @@
+############## counts_per_amplicon.R ##############
+#' This file creates scatteplots for all amplicons in a given panel comparing the total counts per cell
+#' versus the counts for this specifi amplicon. Additional cell clustering information has to be provided
+#' in tabular form
+
 library(dplyr)
 sample <- 'Sample5_80_percent'
 dat <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/",sample,"/tsv/",sample,".barcode.cell.distribution.tsv"), 

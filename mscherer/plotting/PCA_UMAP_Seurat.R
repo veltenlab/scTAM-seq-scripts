@@ -1,3 +1,8 @@
+############## PCA_UMAP_Seurat.R ##############
+#' This script creates UMAP and PCA plots for given read counts from scTAM-seq. Standard preprocessing as for
+#' scRNA-seq data (log-normalizing, scaling, PCA, nearest neighbors) is executed. Further information about
+#' cell clustering is visualized in the heatmap.
+
 library(Seurat)
 library(ggplot2)
 sample <- 'Sample5_80_percent'

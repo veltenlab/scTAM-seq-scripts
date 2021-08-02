@@ -1,3 +1,9 @@
+############## plot_autoencoder_heatmap.R ##############
+#' With this script, we use the output of the methylation autoencoder, i.e., the mixture parameter of the forground and background read counts
+#' distributions and plot it as a heatmap. The original read counts also have to be specified, as well as information about the amplicons.
+#' An assignment of the cells to cell types also has to be specified and is used for cluster annotation.
+#' Optionally, the matrix can be binarized to have an even cleaner picture.
+
 library(pheatmap)
 library(viridis)
 sel.amplis <- FALSE
