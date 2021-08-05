@@ -1,13 +1,16 @@
 library(Seurat)
 library(ggplot2)
 sample <- 'Sample5_80_percent'
+include.doublets <- TRUE
 dat <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'),
                      header = T)
 clust.file <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/",sample,"/tsv/cluster_assignment.tsv"))
 out.folder <- paste0('/users/mscherer/cluster/project/Methylome/analysis/Seurat/',sample)
 dat <- dat[row.names(clust.file),]
-dat <- dat[clust.file$CellType!="Mixed",]
-clust.file <- clust.file[clust.file$CellType!="Mixed",]
+if(!include.doublets){
+  dat <- dat[clust.file$CellType!="Mixed",]
+  clust.file <- clust.file[clust.file$CellType!="Mixed",]
+}
 dat <- dat[clust.file$Barcode,]
 seurat.obj <- CreateSeuratObject(t(dat),
                                  assay = "DNAm",
