@@ -1,9 +1,9 @@
 library(pheatmap)
 library(viridis)
 sel.amplis <- FALSE
-drop.cells <- TRUE
+drop.cells <- FALSE
 sample <- 'Sample5_80_percent'
-meth.data <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/mixture_prob_dca.csv'),
+meth.data <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/mixture_prob_dca_test.csv'),
                         header = TRUE,
                         row.names = 1)
 input <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'),
@@ -47,14 +47,46 @@ pheatmap(meth.data,
          annotation_colors=list(CellType=c('Jurkat'='#ff9289', 'K562'='#82b7ff', 'Mixed'='grey'),
                                 Type=c('Aci'='grey','Hha Jurkat high'='#b3645eff','Hha K562 high'='#597daeff')))
 
-# bin.map <- as.data.frame(apply(meth.data,2,round))
-# row.names(bin.map) <- row.names(meth.data)
-# colnames(bin.map) <- colnames(meth.data)
-# pheatmap(bin.map,
-#          annotation_row = clust.file[,'CellType',drop=FALSE],
-#          annotation_col = ampli.info[,c('Type','CG'),drop=FALSE],
-#          show_rownames=FALSE,show_colnames=FALSE,
-#          clustering_method = 'ward.D',
-#          cluster_cols = FALSE,
-#          annotation_colors=list(CellType=c('Jurkat'='#ff9289', 'K562'='#82b7ff', 'Mixed'='grey'),
-#                                 Type=c('Aci'='grey','Hha Jurkat high'='#b3645eff','Hha K562 high'='#597daeff')))
+bin.map <- as.data.frame(apply(meth.data,2,round))
+row.names(bin.map) <- row.names(meth.data)
+colnames(bin.map) <- colnames(meth.data)
+pheatmap(bin.map,
+         annotation_row = clust.file[,'CellType',drop=FALSE],
+         annotation_col = ampli.info[,c('Type','CG'),drop=FALSE],
+         show_rownames=FALSE,show_colnames=FALSE,
+         clustering_method = 'ward.D',
+         cluster_cols = FALSE,
+         annotation_colors=list(CellType=c('Jurkat'='#ff9289', 'K562'='#82b7ff', 'Mixed'='grey'),
+                                Type=c('Aci'='grey','Hha Jurkat high'='#b3645eff','Hha K562 high'='#597daeff')))
+
+library(caret)
+meth.data <- apply(meth.data,2,function(x){
+  x[x==0] <- 1e-5
+  x[x==1] <- 0.99999
+  log2(x/(1-x))
+})
+for.reg <- data.frame(meth.data,CellType=as.factor(ifelse(clust.file$CellType=='Mixed',1,0)))
+train_control <- trainControl(method = "cv", number = 10)
+model <- train(CellType ~ .,
+               data = for.reg,
+               trControl = train_control,
+               method = "glm",
+               family = binomial())
+to.plot <- data.frame(for.reg,CT=clust.file$CellType)
+ggplot(to.plot,aes(x=CT,y=AMPL130902))+geom_violin()+theme_bw()
+sum <- summary(model)
+p.vals <- sum$coefficients[,'Pr(>|z|)']
+ampli.sig <- names(p.vals[p.vals<0.001])
+types <- as.character(ampli.info[,'Type'])
+types[match(ampli.sig,row.names(ampli.info))] <- 'significant'
+ampli.info$Type <- types
+pheatmap(meth.data,
+         annotation_row = clust.file[,'CellType',drop=FALSE],
+         color=rev(inferno(50)),
+         annotation_col = ampli.info[,c('Type','CG'),drop=FALSE],
+         show_rownames=FALSE,show_colnames=FALSE,
+         clustering_method = 'ward.D',
+         cluster_cols = FALSE,
+         annotation_colors=list(CellType=c('Jurkat'='#ff9289', 'K562'='#82b7ff', 'Mixed'='grey'),
+                                Type=c('Aci'='grey','Hha Jurkat high'='#b3645eff','Hha K562 high'='#597daeff','significant'='purple')))
+ggplot(to.plot,aes(x=CT,y=AMPL134269))+geom_violin()+theme_bw()

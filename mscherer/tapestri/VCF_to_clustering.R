@@ -3,27 +3,27 @@ library(snpStats)
 library(VariantAnnotation)
 library(ggfortify)
 library(pheatmap)
-sample <- 'Sample5_80_percent'
+sample <- 'Sample3_80_percent'
 param <- ScanVcfParam(which = GRanges(c('chr3:194057636',
-#                                        'chr10:82299620',
-#                                       'chr1:110738296',
-#                                       'chr22:43910839',
+                                        'chr10:82299620',
+                                       'chr1:110738296',
+                                       'chr22:43910839',
                                         'chr9:137756496',
-#                                       'chr11:119879255',
-#                                        'chr4:9677287',
-#                                        'chr11:119879327',
-#                                        'chr12:133347014',
-#                                        'chr19:1035450',
- #                                       'chr19:31777639',
-                                      'chr16:68318995')))#,
-   #                                     'chr9:137756645')))
+                                       'chr11:119879255',
+                                        'chr4:9677287',
+                                        'chr11:119879327',
+                                        'chr12:133347014',
+                                        'chr19:1035450',
+                                       'chr19:31777639',
+                                      'chr16:68318995',
+                                     'chr9:137756645')))
 vcf <- readVcf(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/vcf/',sample,'.combined.vcf.gz'),
                genome='hg19',
                param = param)
 snp.mat <- genotypeToSnpMatrix(vcf)
 snp.num <- as(snp.mat$genotypes,'numeric')
 num.nas <- apply(snp.num,2,function(x)sum(is.na(x)))
-snp.zero.nas <- snp.num[,num.nas<1000]
+snp.zero.nas <- snp.num[,num.nas<50]
 #pca.obj <- prcomp(t(snp.zero.nas))
 #autoplot(pca.obj)
 #pheatmap(snp.num)
@@ -69,8 +69,8 @@ cluster.mean.second <- mean(prot.data$raw[prot.data$ab_description=='CD3'&prot.d
 is.jurkat <- ifelse(cluster.mean.first>cluster.mean.second,1,2)
 is.k562 <- ifelse(cluster.mean.first>cluster.mean.second,2,1)
 
-is.jurkat <- 2
-is.k562 <- 1
+is.jurkat <- 1
+is.k562 <- 2
 cell.assignment <- rep('Mixed',length(clust))
 cell.assignment[clust==is.jurkat] <- 'Jurkat'
 cell.assignment[clust==is.k562] <- 'K562'
