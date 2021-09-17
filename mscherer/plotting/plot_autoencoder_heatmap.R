@@ -10,12 +10,11 @@ sel.amplis <- FALSE
 drop.cells <- FALSE
 sample <- 'Sample5_80_percent'
 meth.data <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/mixture_prob_dca_test.csv'),
-                        header = TRUE,
-                        row.names = 1)
+                       header = TRUE,
+                       row.names = 1)
 input <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'),
-                    sep='\t',
-                    header=TRUE)
-
+                   sep='\t',
+                   header=TRUE)
 clust.file <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/cluster_assignment.tsv'))
 if(drop.cells){
   rem.cells <- clust.file$Barcode[clust.file$CellType=='Mixed']
@@ -57,6 +56,7 @@ bin.map <- as.data.frame(apply(meth.data,2,round))
 row.names(bin.map) <- row.names(meth.data)
 colnames(bin.map) <- colnames(meth.data)
 pheatmap(bin.map,
+         color=rev(inferno(50)),
          annotation_row = clust.file[,'CellType',drop=FALSE],
          annotation_col = ampli.info[,c('Type','CG'),drop=FALSE],
          show_rownames=FALSE,show_colnames=FALSE,

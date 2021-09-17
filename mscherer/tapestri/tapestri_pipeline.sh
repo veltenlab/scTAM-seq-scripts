@@ -27,7 +27,7 @@ echo "$(date): Start MissionBio Tapestri Pipeline"
 ref_genome="/users/lvelten/project/Methylome/references/MissionBio/hg19/ucsc_hg19.fa"
 panel_bed="/users/lvelten/project/Methylome/infos/cell_lines/TapestriDesigner/1898.bed"
 ampli_file="/users/lvelten/project/Methylome/infos/amplicon_info/200804_Design_Mission_Bio_sites_Jurkat_K562.tsv"
-cellfinder_cutoff=0.8
+cellfinder_cutoff=0.7
 tmp_folder=${output}/tmp
 mkdir $tmp_folder
 

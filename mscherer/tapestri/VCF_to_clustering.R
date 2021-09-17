@@ -3,7 +3,7 @@ library(snpStats)
 library(VariantAnnotation)
 library(ggfortify)
 library(pheatmap)
-sample <- 'Sample3_80_percent'
+sample <- 'Sample5_80_percent'
 param <- ScanVcfParam(which = GRanges(c('chr3:194057636',
                                         'chr10:82299620',
                                        'chr1:110738296',
@@ -69,8 +69,8 @@ cluster.mean.second <- mean(prot.data$raw[prot.data$ab_description=='CD3'&prot.d
 is.jurkat <- ifelse(cluster.mean.first>cluster.mean.second,1,2)
 is.k562 <- ifelse(cluster.mean.first>cluster.mean.second,2,1)
 
-is.jurkat <- 1
-is.k562 <- 2
+is.jurkat <- 2
+is.k562 <- 3
 cell.assignment <- rep('Mixed',length(clust))
 cell.assignment[clust==is.jurkat] <- 'Jurkat'
 cell.assignment[clust==is.k562] <- 'K562'

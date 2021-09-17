@@ -26,7 +26,7 @@ seurat.obj <- NormalizeData(seurat.obj,
                             normalization.method = "LogNormalize",
                             scale.factor = 10000)
 seurat.obj <- ScaleData(seurat.obj, features = row.names(seurat.obj))
-seurat.obj <- FindVariableFeatures(seurat.obj,nfeatures = 200)
+seurat.obj <- FindVariableFeatures(seurat.obj,nfeatures = 8)
 seurat.obj <- RunPCA(seurat.obj,npcs = 5)
 seurat.obj <- FindNeighbors(seurat.obj, dims = 1:5)
 seurat.obj <- FindClusters(seurat.obj, resolution = 0.5)

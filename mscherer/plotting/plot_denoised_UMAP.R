@@ -8,8 +8,8 @@ library(ggplot2)
 library(pheatmap)
 library(viridis)
 sel.amplis <- FALSE
-drop.cells <- FALSE
-sample <- 'Sample2_80_percent'
+drop.cells <- TRUE
+sample <- 'Sample5_80_percent'
 meth.data <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/mixture_prob_dca.csv'),
                       header = TRUE,
                       row.names = 1)

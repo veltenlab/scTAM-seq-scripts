@@ -4,7 +4,7 @@
 #' file and the assignment of cells to clusters has to be specified.
 
 library(pheatmap)
-cut.off <- 10
+cut.off <- 5
 sample <- 'Sample5_80_percent'
 dat.s3 <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'))
 to.plot <- apply(dat.s3,2,function(x){
