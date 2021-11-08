@@ -64,7 +64,7 @@ to_plot <- data.frame(Cut=dropout_cut,
 plot_theme <- plot_theme+theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~.)+
-  labs(x='Fraction of cells with reads in uncut sample', y='Fraction of cells with reads in cut sample', col='Amplicon Type')+  plot_theme+scale_color_manual(values=colors_amplicons)
+  labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+  plot_theme+scale_color_manual(values=colors_amplicons)
 ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all.pdf'), plot)
 to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
                                      "Differential CpG Bcells",
@@ -73,6 +73,6 @@ to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
                    ]
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~.)+
-  labs(x='Fraction of cells with reads in uncut sample', y='Fraction of cells with reads in cut sample', col='Amplicon Type')+
+  labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
 plot_theme+scale_color_manual(values=colors_amplicons)
 ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot)

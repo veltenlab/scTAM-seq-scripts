@@ -9,8 +9,8 @@ library(pheatmap)
 filtered.counts <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
 amplicon.info <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv", header=T, row.names = 1)
 
-
 bulk.methylation <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
+doublet_file <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/doublet_detection/Hha_dropout/doublets.csv', row.names = 1)
 
 autoencoder.bottleneck <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/bottleneck_good.csv", row.names = 1)
 autoencoder.output <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/mixture_prob_dca_with_MCL.csv", row.names = 1)
@@ -86,7 +86,12 @@ selected <- filtered.counts[,fpr$Type.of.amplicon == "CpG.B.cell.diff" & fpr$unc
 selected <- apply(selected,2,as.numeric)
 rownames(selected) <- rownames(filtered.counts)
 non_hha_reads <- apply(filtered.counts[, row.names(amplicon.info[amplicon.info$Type.of.amplicon%in%'NonHhaI',])], 1, sum)
-rowinfo <- data.frame(row.names = rownames(filtered.counts), ct = Idents(methylome), libsize = log10(methylome$nCount_TAM), non_hha_reads=non_hha_reads, nfeature = methylome$nFeature_TAM)
+rowinfo <- data.frame(row.names = rownames(filtered.counts), 
+                      ct = Idents(methylome), 
+                      libsize = log10(methylome$nCount_TAM), 
+                      non_hha_reads=non_hha_reads, 
+                      nfeature = methylome$nFeature_TAM,
+                      doublet = doublet_file[rownames(filtered.counts), 'x'])
 pheatmap(selected, annotation_col = subset(fpr, select = "uncut"),annotation_row = rowinfo, clustering_distance_cols = "binary", clustering_distance_rows = "binary", show_rownames = F, show_colnames = F, cutree_rows = 4, clustering_method = "ward.D2")
 
 # plot bulk vs. single-cell estimated level
