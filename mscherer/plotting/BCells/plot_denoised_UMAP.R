@@ -19,7 +19,22 @@ mis.amplis <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysi
                       row.names = 1)
 input <- input[,!(colnames(input)%in%as.character(mis.amplis[,1]))]
 ampli.info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.tsv')
-cell.info <- read.csv('/users/mscherer/cluster/project/Methylome/infos/BCells/cell_sexes_Sample7.csv',row.names = 1)
+#cell.info <- read.csv('/users/mscherer/cluster/project/Methylome/infos/BCells/cell_sexes_Sample7.csv',row.names = 1)
+cell.info <- data.frame(row.names = row.names(input))
+total.counts <- log10(apply(input,1,sum))
+cell.info <- data.frame(cell.info,TotalCounts=total.counts[row.names(cell.info)])
+doublet.file <- paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/doublet_scores.csv')
+if(file.exists(doublet.file)){
+    doublet.file <- read.csv(doublet.file)
+    row.names(doublet.file) <- doublet.file$Barcode
+    cell.info <- data.frame(cell.info,doublet.file[row.names(cell.info),])
+}
+doublet.file <- paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/doublet_scores_DoubletDetection.csv')
+if(file.exists(doublet.file)){
+    doublet.file <- read.csv(doublet.file)
+    row.names(doublet.file) <- doublet.file$Barcode
+    cell.info <- data.frame(cell.info,doublet.file[row.names(cell.info),])
+}
 colnames(meth.data) <- colnames(input)
 row.names(meth.data) <- row.names(input)
 seurat.obj <- CreateSeuratObject(t(meth.data),
@@ -37,7 +52,15 @@ seurat.obj <- RunUMAP(seurat.obj, dims = 1:10)
 DimPlot(seurat.obj, reduction = "umap")
 
 DimPlot(seurat.obj, reduction = "umap", group.by = 'sex')
-
+FeaturePlot(seurat.obj, feature = 'TotalCounts')
+if(('DoubletScore')%in%colnames(cell.info)){
+    FeaturePlot(seurat.obj, feature = 'DoubletScore')
+    DimPlot(seurat.obj, reduction = "umap", group.by = 'PredictedDoublet')
+}
+if(('DoubletDetectionScore')%in%colnames(cell.info)){
+    FeaturePlot(seurat.obj, feature = 'DoubletDetectionScore')
+    DimPlot(seurat.obj, reduction = "umap", group.by = 'DoubletDetectionLabel')
+}
 theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
                text=element_text(color='black',size=15))

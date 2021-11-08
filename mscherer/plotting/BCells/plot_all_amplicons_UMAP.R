@@ -1,6 +1,6 @@
 ############## plot_all_amplicons_UMAP.R ##############
 
-.libPaths(c(.libPaths(),'/users/mscherer/conda/envs/rnbeads/lib/R/library/'))
+#.libPaths(c(.libPaths(),'/users/mscherer/conda/envs/rnbeads/lib/R/library/'))
 library(Seurat)
 library(ggplot2)
 library(pheatmap)
@@ -21,7 +21,8 @@ ampli.info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells
 colnames(meth.data) <- colnames(input)
 row.names(meth.data) <- row.names(input)
 seurat.obj <- CreateSeuratObject(t(meth.data),
-                                 assay = "DNAm")
+                                 assay = "DNAm",
+                                 meta.data = input)
 seurat.obj <- NormalizeData(seurat.obj,
                             normalization.method = "LogNormalize",
                             scale.factor = 10000)
@@ -38,7 +39,8 @@ theme <- theme(panel.background = element_rect(color='black',fill='white'),
 cpg.names <- row.names(rnb.annotation2data.frame(rnb.get.annotation('probesEPIC')))
 anno <- unlist(rnb.get.annotation('probesEPIC'))               
 ampli.info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.tsv')
-plot.path <- paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/plots/amplicons/')
+plot.path <- paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/plots/amplicons_wo_MCL/')
+plot.raw <- paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/plots/amplicons_wo_MCL/raw/')
 for(ampli in colnames(meth.data)){
   chr.code <- paste0(ampli.info[ampli,'chr'],
                      ':',
@@ -54,5 +56,11 @@ for(ampli in colnames(meth.data)){
     scale_color_gradientn(colors=rev(viridis(15)),
                           limits=c(0,1))
   f.name <- file.path(plot.path,paste0(ampli,'_',cpg,'.pdf'))
+  ggsave(f.name,plot)
+  to.plot <- as.data.frame(seurat.obj[["umap"]]@cell.embeddings)
+  to.plot[,ampli] <- log10(input[row.names(to.plot),ampli]+1)
+  plot <- ggplot(to.plot,aes_string(x='UMAP_1',y='UMAP_2',color=ampli))+geom_point()+theme+
+    scale_color_gradientn(colors=rev(magma(15)), name='log10(reads)')
+  f.name <- file.path(plot.raw,paste0(ampli,'_',cpg,'.pdf'))
   ggsave(f.name,plot)
 }

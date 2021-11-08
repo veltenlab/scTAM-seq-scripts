@@ -6,7 +6,7 @@
 
 library(pheatmap)
 library(viridis)
-sample <- 'BCells_Sample6_70_percent_good_performance'
+sample <- 'BCells_Sample7_70_percent_good_performance'
 meth.data <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/mixture_prob_dca.csv'),
                        header = TRUE,
                        row.names = 1)
@@ -17,7 +17,8 @@ ampli.info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells
 mis.genes <- read.csv((paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/methylation_autoencoder/missing_amplicons.csv')))
 mis.genes <- as.character(mis.genes[,2])
 input <- input[,!(colnames(input)%in%mis.genes)]
-ampli.info <- ampli.info[!(row.names(ampli.info)%in%mis.genes),]
+#ampli.info <- ampli.info[!(row.names(ampli.info)%in%mis.genes),]
+ampli.info <- ampli.info[colnames(input),]
 colnames(meth.data) <- colnames(input)
 row.names(meth.data) <- row.names(input)
 ampli.info$Type <- as.factor(ampli.info$Type)
