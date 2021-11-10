@@ -129,3 +129,5 @@ png(file.path(plot_path, 'F1_D_heatmap.png'),
 grid.newpage()
 grid.draw(ph$gtable)
 dev.off()
+write.csv(rowinfo, '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/cell_metadata.csv')
+write.csv(subset(fpr, uncut > 0.9 & Type.of.amplicon=='CpG.B.cell.diff'), '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv')
