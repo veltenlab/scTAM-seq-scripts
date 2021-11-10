@@ -1,12 +1,18 @@
 library(ggplot2)
-treated_sample <- read.table('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv')
-untreated_sample <- read.table('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample6_70_percent_good_performance/tsv/BCells_Sample6_70_percent_good_performance.barcode.cell.distribution.tsv')
-ampli.info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
-sel.amplis <- row.names(ampli.info)[ampli.info$'Type.of.amplicon'%in%c('NonHhaI')]
-dropout_amplicons <- apply(untreated_sample[, sel.amplis], 2, function(x){
+treated_sample <- read.table('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv')
+untreated_sample <- read.table('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample6_70_percent_good_performance/tsv/BCells_Sample6_70_percent_good_performance.barcode.cell.distribution.tsv')
+ampli.info <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+sel.amplis <- row.names(ampli.info)[ampli.info$'Type.of.amplicon'%in%c('CpG.always.meth.B', 'NonHhaI')]
+dropout_amplicons_untreated <- apply(untreated_sample[, sel.amplis], 2, function(x){
   sum(x==0)/length(x)
 })
-sel.amplis <- sel.amplis[!(dropout_amplicons>0.9|dropout_amplicons<0.1)]
+dropout_amplicons_treated <- apply(treated_sample[, sel.amplis], 2, function(x){
+  sum(x==0)/length(x)
+})
+sel.amplis <- sel.amplis[dropout_amplicons_untreated<=0.8&
+                         dropout_amplicons_untreated>=0.15&
+                         dropout_amplicons_treated<=0.8]#&
+#                         dropout_amplicons_treated>=0.15]
 dropout_treated <- apply(treated_sample[, sel.amplis], 1, function(x){
   sum(x==0)/length(x)
 })
@@ -26,8 +32,9 @@ library(diptest)
 dip.test(dropout_treated)
 library(multimode)
 modetest(dropout_treated)
-res <- locmodes(sqrt(dropout_treated), mod0=2, display=TRUE)
-antimode <- res$locations[2]
-do.ass <- ifelse(sqrt(dropout_treated)<antimode, 'Doublet', 'Singlet')
-do.ass <- ifelse(dropout_treated<0.25, 'Doublet', 'Singlet')
-write.csv(do.ass, '/users/mscherer/cluster/project/Methylome/analysis/doublet_detection/Hha_dropout/doublets.csv')
+res <- locmodes(dropout_treated, mod0=2, display=TRUE)
+mode <- res$locations[1]
+do.ass <- ifelse(dropout_treated<mode, 'Doublet', 'Singlet')
+plyr::count(do.ass)
+#do.ass <- ifelse(dropout_treated<0.25, 'Doublet', 'Singlet')
+write.csv(do.ass, '/users/lvelten/project/Methylome/analysis/doublet_detection/Hha_dropout/doublets.csv')
