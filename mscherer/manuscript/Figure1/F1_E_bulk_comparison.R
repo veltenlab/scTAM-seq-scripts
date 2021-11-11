@@ -43,8 +43,18 @@ colnames(to_plot)[4:5] <- c('Bulk', 'BulkMethylation')
 theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
                text=element_text(color='black',size=15))
+cors <- t(as.data.frame(apply(to_plot, 1, function(x){
+  ct_sc <- x['CellType']
+  ct_bulk <- x['Bulk']
+  meth <- subset(to_plot, CellType==ct_sc & Bulk==ct_bulk, select=c('Methylation', 'BulkMethylation'))
+  c(cor(meth$Methylation, meth$BulkMethylation),
+    cor.test(meth$Methylation, meth$BulkMethylation)$p.value)
+})))
+to_plot$Correlation <- cors[,1]
+to_plot$CorrelationPVal <- cors[,2]
 plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='CellType'))+geom_point()+geom_smooth(method='lm',se=FALSE)+xlim(0, 1)+ylim(0,1)+
   facet_grid(Bulk~CellType)+
+  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), x=0.5, y=0.9, check_overlap=TRUE, color='black')+
   plot_theme+
   scale_color_manual(values=color_map)+ylab('Bulk methylation')+xlab('Pseudo-bulk methylation')
 ggsave(file.path(plot_path, 'F1_E_bulk_vs_singlecell.pdf'), plot, width=200, height=150, units='mm')

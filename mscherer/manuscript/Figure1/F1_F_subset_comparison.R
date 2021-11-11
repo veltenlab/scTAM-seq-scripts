@@ -68,18 +68,24 @@ bcell_clusters_diff <- bcell_clusters_diff[!is.na(row.names(bcell_clusters_diff)
 mean_classes <- aggregate(t(meth.data.numeric[row.names(bcell_clusters_diff), ]), by=list(cell_assignment$V2), mean)
 bcell_clusters_diff <- t(bcell_clusters_diff)
 bcell_clusters_diff <- data.frame(Group.1=row.names(bcell_clusters_diff), bcell_clusters_diff)
-colnames(bcell_clusters_diff)[-1] <- paste0(colnames(bcell_clusters_diff)[-1], '/', 
-                                            more_info[match(colnames(bcell_clusters_diff)[-1], more_info$background.cpgs), 'amplicon'])
-colnames(mean_classes)[-1] <- paste0(colnames(mean_classes)[-1], '/', 
-                                     more_info[match(colnames(mean_classes)[-1], more_info$background.cpgs), 'amplicon'])
+colnames(bcell_clusters_diff)[-1] <- paste0(colnames(bcell_clusters_diff)[-1])#, '/', 
+                                            #more_info[match(colnames(bcell_clusters_diff)[-1], more_info$background.cpgs), 'amplicon'])
+colnames(mean_classes)[-1] <- paste0(colnames(mean_classes)[-1])#, '/', 
+                                     #more_info[match(colnames(mean_classes)[-1], more_info$background.cpgs), 'amplicon'])
 to_plot <- data.frame(Type=c('Bulk', 'Bulk', 'SingleCell', 'SingleCell'),
                       rbind(mean_classes, 
                             bcell_clusters_diff))
 to_plot <- reshape2::melt(to_plot, id=c('Group.1', 'Type'))
 colnames(to_plot)[3:4] <- c('CpGID', 'Methylation')
+to_plot$CpGID <- factor(to_plot$CpGID, levels=unique(names(sort(bcell_clusters, decreasing=TRUE))))
+rename_cluster <- c('memory1'='csMBC',
+                    'memory2'='ncsMBC',
+                    'csMBC'='csMBC',
+                    'ncsMBC'='ncsMBC')
+to_plot$Group.1 <- rename_cluster[to_plot$Group.1]
 
 library(viridis)
-plot <- ggplot(to_plot,aes(x=Group.1, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white')+
-  scale_fill_viridis(option='inferno', begin=1, end=0)+facet_wrap(Type~., scales='free_x', strip.position = "top")+theme+xlab('')+
+plot <- ggplot(to_plot,aes(x=Type, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white')+
+  scale_fill_viridis(option='inferno', begin=1, end=0)+facet_wrap(Group.1~., strip.position = "top")+theme+xlab('')+
   plot_theme
-ggsave(file.path(plot_path, 'F1_F_subset_comparison.pdf'), plot, width=150, height=150, units='mm')
+ggsave(file.path(plot_path, 'F1_F_subset_comparison.pdf'), plot, width=125, height=150, units='mm')

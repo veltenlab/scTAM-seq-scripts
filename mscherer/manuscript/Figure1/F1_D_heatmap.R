@@ -120,12 +120,12 @@ ph <- pheatmap(selected[row.names(rowinfo), ],
                clustering_method = "ward.D2",
                color=rev(inferno(50)),
                annotation_colors = color_map,
-               fontsize=30)
-ph$gtable$grobs[[1]]$gp <- gpar(lwd = 4)
-ph$gtable$grobs[[2]]$gp <- gpar(lwd = 4)
+               fontsize=15)
+ph$gtable$grobs[[1]]$gp <- gpar(lwd = 2)
+ph$gtable$grobs[[2]]$gp <- gpar(lwd = 2)
 png(file.path(plot_path, 'F1_D_heatmap.png'),
-    width=1600,
-    height=1800)
+    width=1000,
+    height=1600)
 grid.newpage()
 grid.draw(ph$gtable)
 dev.off()
