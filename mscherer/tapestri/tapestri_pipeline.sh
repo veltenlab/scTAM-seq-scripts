@@ -108,6 +108,13 @@ samtools view -@ $cores -b -R $in_file ${output}/bam/${name}_aligned_fixed.bam >
 samtools index $out_file
 python3 -m missionbio.dna.calculate_reads_mapped_to_cells --tsv ${output}/tsv/${name}.barcode.cell.distribution.tsv > ${output}/tsv/read_to_cells.txt
 
+# Run DoubletDetection
+echo "###################################################################################################"
+echo "$(date): Running DoubletDetection"
+in_doublet=${output}/tsv/${name}.barcode.cell.distribution.tsv
+out_doublet=${output}/tsv/doublet_scores_DoubletDetection.csv
+python3 /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/DoubletDetection.py --input $in_doublet --output $out_doublet
+
 # DONE!
 echo "###################################################################################################"
 echo "$(date): Finished PART I"
@@ -153,7 +160,7 @@ tabix ${out_file}.gz
 # PART II
 
 # Generate the h5 file for further exploration
-echo "##########/users/lvelten/project/Methylome/src/MissionBio/metadata.json#########################################################################################"
+echo "###################################################################################################"
 echo "$(date): Generate the final h5 file"
 in_file=${out_file}.gz
 count_file=${output}/tsv/${name}.barcode.cell.distribution.tsv
