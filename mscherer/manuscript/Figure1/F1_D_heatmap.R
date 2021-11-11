@@ -10,21 +10,21 @@ library(reshape2)
 library(pheatmap)
 library(viridis)
 library(grid)
-plot_path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
 color_map <- list(CellType=c('naive'='#fcbd7e',
                  'memory1'='#fc6571',
                  'memory2'='#fc3262'),
                Bulk=c('Naive B-cell high'='#fcbd7e',
                'Memory B-cell high'='#fc4762'))
-filtered.counts <- read.table("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
-amplicon.info <- read.table("/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv", header=T, row.names = 1)
+filtered.counts <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
+amplicon.info <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv", header=T, row.names = 1)
 
-bulk.methylation <- read.table("/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
-doublet_file <- read.csv('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv', row.names = 2)
+bulk.methylation <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
+doublet_file <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv', row.names = 2)
 
-autoencoder.bottleneck <- read.csv("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/bottleneck_good.csv", row.names = 1)
-autoencoder.output <- read.csv("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/mixture_prob_dca_with_MCL.csv", row.names = 1)
-missing.amplicons <- read.csv("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/missing_amplicons_with_MCL.csv", row.names = 1)
+autoencoder.bottleneck <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/bottleneck_good.csv", row.names = 1)
+autoencoder.output <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/mixture_prob_dca_with_MCL.csv", row.names = 1)
+missing.amplicons <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/methylation_autoencoder/missing_amplicons_with_MCL.csv", row.names = 1)
 filtered.counts <- filtered.counts[,!colnames(filtered.counts) %in% missing.amplicons$X0]
 dimnames(autoencoder.output) <- dimnames(filtered.counts)
 
@@ -45,7 +45,7 @@ FeaturePlot(methylome, c("AMPL130853","AMPL130724","AMPL130910","AMPL131020"), s
 labels <- c("0"="naive_1", "1" = "naive_2", "3" = "inbetween", "2" = "memory")
 Idents(methylome) <- labels[as.character(Idents(methylome))]
 
-filtered.counts.uncut <- read.table("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample6_70_percent_good_performance/tsv/BCells_Sample6_70_percent_good_performance.barcode.cell.distribution.tsv", row.names = 1, header=T)
+filtered.counts.uncut <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample6_70_percent_good_performance/tsv/BCells_Sample6_70_percent_good_performance.barcode.cell.distribution.tsv", row.names = 1, header=T)
 nreads <- apply(filtered.counts.uncut, 1,sum)
 
 ## How well does the model explain the data in each cell type? (avg likelihood per cell)
@@ -125,9 +125,9 @@ ph$gtable$grobs[[1]]$gp <- gpar(lwd = 4)
 ph$gtable$grobs[[2]]$gp <- gpar(lwd = 4)
 png(file.path(plot_path, 'F1_D_heatmap.png'),
     width=1600,
-    height=1600)
+    height=1800)
 grid.newpage()
 grid.draw(ph$gtable)
 dev.off()
-write.csv(rowinfo, '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/cell_metadata.csv')
-write.csv(subset(fpr, uncut > 0.9 & Type.of.amplicon=='CpG.B.cell.diff'), '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv')
+write.csv(rowinfo, '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/cell_metadata.csv')
+write.csv(subset(fpr, uncut > 0.9 & Type.of.amplicon=='CpG.B.cell.diff'), '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv')

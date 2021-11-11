@@ -6,7 +6,7 @@
 library(ggplot2)
 cut <- 'BCells_Sample7_70_percent_good_performance'
 uncut <- 'BCells_Sample6_70_percent_good_performance'
-plot.path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=15),
@@ -24,13 +24,13 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/", cut, "/tsv/", cut, ".barcode.cell.distribution_with_MCL.tsv"), 
+dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/", cut, "/tsv/", cut, ".barcode.cell.distribution_with_MCL.tsv"), 
                       sep="\t", 
                       header=T)
-dat_uncut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                         sep="\t", 
                         header=T)
-ampli_info <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 sel_amplis <- row.names(ampli_info)[grepl('CpG.imprinted', ampli_info$Type.of.amplicon)]
 dropout_cut <- apply(dat_cut[, sel_amplis], 2, function(x){
   sum(x==0)/length(x)
@@ -52,7 +52,7 @@ plot <- ggplot(to_plot, aes(x=sqrt(Uncut), y=Cut))+
   xlim(0,1)+ylim(0,1)+
   annotate(x=0.3, y=0.75, geom = 'text', label=paste("ANOVA p-value sqrt- vs. linear fit: ", format(anov_p, digits = 3)))+
   plot_theme
-ggsave(file.path(plot.path, 'F1_C_imprinted_original.pdf'), plot)
+ggsave(file.path(plot.path, 'F1_C_imprinted_original.pdf'), plot, width=100, height=100, units='mm')
 
 square_fit <- lm(Cut~0+Uncut+I(Uncut^2), data=to_plot)
 linear_fit <- lm(Cut~0+Uncut, data=to_plot)
@@ -71,4 +71,4 @@ plot <- ggplot(to_plot, aes(x=1-(Uncut^2), y=1-Cut, color=Type))+
   annotate(x=0.3, y=0.75, geom = 'text', label=paste("ANOVA p-value squared- vs. linear fit: ", format(anov_p, digits = 3)))+
   scale_color_manual(values=c('Observed'=unname(colors_amplicons['Imprinted CpG']), 'Theoretical'='#b3b3b3'))+
   plot_theme
-ggsave(file.path(plot.path, 'F1_C_imprinted.pdf'), plot)
+ggsave(file.path(plot.path, 'F1_C_imprinted.pdf'), plot, width=100, height=100, units='mm')

@@ -1,5 +1,11 @@
+################### F1_E_bulk_comparison.R ################### 
+#'This file compares the pseudo-bulk obtained from averaging the methylation calls
+#'in the clusters defined in the heatmap with the bulk values measured in
+#'doi.org/10.1038/ng.3291
+
+
 library(ggplot2)
-plot_path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=15),
@@ -12,15 +18,15 @@ color_map <- c('naive'='#fcbd7e',
                'memory1'='#fc6571',
                'memory2'='#fc3262')
 
-filtered.counts <- read.table("/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
-cell_metadata <- read.csv('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/cell_metadata.csv',
+filtered.counts <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
+cell_metadata <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/cell_metadata.csv',
                           row.names=1)
-amplicon.info <- read.csv("/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv", row.names = 1)
+amplicon.info <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv", row.names = 1)
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), row.names(amplicon.info)]>0, 1, 0)
 
 means_clusters <- aggregate(selected, by=list(cell_metadata$CellType), mean)
-bulk_table <- read.table('/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
+bulk_table <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
 means_bulk <- bulk_table[, c('NBC.mean', 'MBC.mean')]
 colnames(means_bulk) <- c('naiveB', 'memoryB')
 row.names(means_bulk) <- bulk_table$amplicon
@@ -41,4 +47,4 @@ plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='
   facet_grid(Bulk~CellType)+
   plot_theme+
   scale_color_manual(values=color_map)+ylab('Bulk methylation')+xlab('Pseudo-bulk methylation')
-ggsave(file.path(plot_path, 'F1_E_bulk_vs_singlecell.pdf'), plot)
+ggsave(file.path(plot_path, 'F1_E_bulk_vs_singlecell.pdf'), plot, width=200, height=150, units='mm')
