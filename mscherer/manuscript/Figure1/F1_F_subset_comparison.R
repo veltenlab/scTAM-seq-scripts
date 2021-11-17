@@ -54,7 +54,7 @@ load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/me
 bcell_clusters <- unlist(p.vals['memory2','memory1'])
 bcell_clusters <- sort(bcell_clusters)[1:20]
 bcell_clusters_diff <- t(as.data.frame(meth_diff['memory2','memory1']))
-colnames(bcell_clusters_diff) <- c('memory2', 'memory1')
+colnames(bcell_clusters_diff) <- c('memory1', 'memory2')
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
 more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
@@ -69,17 +69,17 @@ mean_classes <- aggregate(t(meth.data.numeric[row.names(bcell_clusters_diff), ])
 bcell_clusters_diff <- t(bcell_clusters_diff)
 bcell_clusters_diff <- data.frame(Group.1=row.names(bcell_clusters_diff), bcell_clusters_diff)
 colnames(bcell_clusters_diff)[-1] <- paste0(colnames(bcell_clusters_diff)[-1])#, '/', 
-                                            #more_info[match(colnames(bcell_clusters_diff)[-1], more_info$background.cpgs), 'amplicon'])
+                                            #more_info[match(colnames(bcell_clusters_diff)[-1], more_info$background.cpgs), 'amplicon']
 colnames(mean_classes)[-1] <- paste0(colnames(mean_classes)[-1])#, '/', 
-                                     #more_info[match(colnames(mean_classes)[-1], more_info$background.cpgs), 'amplicon'])
+                                     #more_info[match(colnames(mean_classes)[-1], more_info$background.cpgs), 'amplicon']
 to_plot <- data.frame(Type=c('Bulk', 'Bulk', 'SingleCell', 'SingleCell'),
                       rbind(mean_classes, 
                             bcell_clusters_diff))
 to_plot <- reshape2::melt(to_plot, id=c('Group.1', 'Type'))
 colnames(to_plot)[3:4] <- c('CpGID', 'Methylation')
 to_plot$CpGID <- factor(to_plot$CpGID, levels=unique(names(sort(bcell_clusters, decreasing=TRUE))))
-rename_cluster <- c('memory1'='csMBC',
-                    'memory2'='ncsMBC',
+rename_cluster <- c('memory2'='csMBC',
+                    'memory1'='ncsMBC',
                     'csMBC'='csMBC',
                     'ncsMBC'='ncsMBC')
 to_plot$Group.1 <- rename_cluster[to_plot$Group.1]

@@ -7,14 +7,14 @@ library(viridis)
 library(pheatmap)
 cut.off <- 0
 sample <- 'Sample5_80_percent'
-plot.path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/'
-dat.s3 <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'))
+plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Supplement/'
+dat.s3 <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'))
 to.plot <- apply(dat.s3,2,function(x){
   ifelse(x>cut.off,1,0)
 })
-clust.file <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/cluster_assignment.tsv'))
-doublet.score <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/doublet_scores_DoubletDetection.csv'), row.names=2)
-ampli.info <- read.csv('/users/lvelten/project/Methylome/analysis/amplicons/cell_lines/R/amplicon_info_with_RnBeads.csv')
+clust.file <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/cluster_assignment.tsv'))
+doublet.score <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/doublet_scores_DoubletDetection.csv'), row.names=2)
+ampli.info <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/amplicons/cell_lines/R/amplicon_info_with_RnBeads.csv')
 row.names(ampli.info) <- ampli.info$AmpID_design_1898
 colnames(to.plot) <- colnames(dat.s3)
 row.names(to.plot) <- row.names(dat.s3)
@@ -36,7 +36,6 @@ png(file.path(plot.path, 'Supplement_K562_Jurkat_Heatmap.png'))
 pheatmap(to.plot,
          annotation_row = clust.file[,c('CellType', 'Doublet'), drop=FALSE],
          color=rev(inferno(50)),
-         annotation_col = ampli.info[,c('Type','CG'),drop=FALSE],
          show_rownames=FALSE,show_colnames=FALSE,
          clustering_distance_cols = "binary",
          clustering_method = 'ward.D2',

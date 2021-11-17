@@ -6,11 +6,19 @@
 library(Seurat)
 library(ggplot2)
 sample <- 'BCells_Sample7_70_percent_good_performance'
-dat <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'),
+dat <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/tsv/',sample,'.barcode.cell.distribution_with_MCL.tsv'),
                      header = T)
+ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+rowinfo <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/rowinfo_reclustering_doublet.csv', row.names=1)
+dat <- dat[row.names(rowinfo), row.names(ampli_info)[ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff']]
 out.folder <- paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/',sample,'/plots/')
+rowinfo$CellType <- ifelse(rowinfo$CellType=='naive', 'naive B-cells', 'memory B-cells')
+cell.info <- read.csv('/users/mscherer/cluster/project/Methylome/infos/BCells/cell_sexes_Sample7.csv',row.names = 1)
+rowinfo$Donor <- NA 
+rowinfo[row.names(cell.info), 'Donor'] <- cell.info[, 'sex']
 seurat.obj <- CreateSeuratObject(t(dat),
-                                 assay = "DNAm")
+                                 assay = "DNAm",
+                                meta.data = rowinfo)
 seurat.obj <- NormalizeData(seurat.obj,
                             normalization.method = "LogNormalize",
                             scale.factor = 10000)
@@ -21,7 +29,13 @@ ElbowPlot(seurat.obj)
 seurat.obj <- FindNeighbors(seurat.obj, dims = 1:11)
 seurat.obj <- FindClusters(seurat.obj, resolution = 0.5)
 seurat.obj <- RunUMAP(seurat.obj, dims = 1:10)
-DimPlot(seurat.obj, reduction = "umap")
+plot <- DimPlot(seurat.obj, reduction = "umap", group.by = 'CellType')+scale_color_manual(values=c('naive B-cells'='#fcbd7e',
+                                                                                                    'memory B-cells'='#fc3262'))
+ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/poster/UMAP.pdf', plot)
+plot <- DimPlot(seurat.obj, reduction = "umap", group.by = 'Donor')#+scale_color_manual(values=c('naive B-cells'='#fcbd7e',
+               #                                                                                    'memory B-cells'='#fc3262'))
+ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/poster/UMAP_Donor.pdf', plot)
+
 plot <- DimPlot(seurat.obj, reduction = "umap")
 ggsave(file.path(out.folder,"UMAP.pdf"),width = 8, height = 5)
 plot <- DimPlot(seurat.obj, reduction = "pca")
