@@ -66,14 +66,14 @@ linear_fit <- lm(Cut~0+Uncut, data=to_plot)
 anov <- anova(linear_fit, square_fit)
 anov_p <- anov$'Pr(>F)'[2]
 
-square <- data.frame(Uncut=seq(0,1,by=0.001), Cut=seq(0,1,by=0.001))
+square <- data.frame(Uncut=sqrt(seq(0,1,by=0.001)), Cut=seq(0,1,by=0.001))
 #square$Type <- 'Sqrt'
 #to_plot <- as.data.frame(rbind(to_plot, square))
 #to_plot <- to_plot[order(to_plot$Type, decreasing = TRUE),]
 row.names(to_plot) <- NULL
 plot <- ggplot()+
-  geom_point(data = square, aes(x=sqrt(Uncut), y=Cut), size=.2, color='black')+
-  geom_point(data = to_plot, aes(x=sqrt(Uncut), y=Cut), color=colors_amplicons["Imprinted CpG"])+
+  geom_point(data = square, aes(x=Uncut, y=Cut), size=.2, color='black')+
+  geom_point(data = to_plot, aes(x=Uncut, y=Cut), color=colors_amplicons["Imprinted CpG"])+
   geom_abline(slope=1, intercept=0)+
   labs(x='Fraction of cells with reads undigested sample', y='Fraction of cells with reads digested sample', col='Amplicon Type')+
   xlim(0,1)+ylim(0,1)+

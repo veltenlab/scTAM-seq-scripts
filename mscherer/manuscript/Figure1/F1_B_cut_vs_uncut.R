@@ -79,6 +79,10 @@ to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
                                      "Always unmethylated CpG in Bcells",
                                      "Always methylated CpG in Bcells"),
                    ]
+to_plot$Type <- factor(to_plot$Type, levels=c("No HhaI cutsite",
+                                              "Always methylated CpG in Bcells",
+                                              "Always unmethylated CpG in Bcells", 
+                                              "Differential CpG Bcells"))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~., nrow = 1)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
