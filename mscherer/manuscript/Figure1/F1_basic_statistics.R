@@ -57,14 +57,14 @@ ampli_info <- ampli_info[][in_all, ]
 
 fpr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%"CpG.always.unmeth.B"]>0, 1, 0)
 fpr <- colMeans(fpr)
-fnr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%"CpG.always.meth.B"]>0, 0, 1)
+fnr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%c("CpG.always.meth.B", "NonHhaI")]>0, 0, 1)
 fnr <- colMeans(fnr)
 dropout <- ifelse(dat_uncut[, row.names(selected_amplicons)]>0, 0, 1)
 dropout <- colMeans(dropout)
+fnr <- c(fnr, dropout)
 to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
-                             rep('FNR', length(fnr)),
-                             rep('Dropout', length(dropout))),
-                     Value=c(fpr, fnr, dropout))
+                             rep('FNR', length(fnr))),
+                     Value=c(fpr, fnr))
 plot <- ggplot(to_plot, aes(x=Type, y=Value))+geom_boxplot(color='black', fill='gray80')+plot_theme
 ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/F1_basic_statistics.pdf', 
        plot,

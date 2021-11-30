@@ -63,11 +63,50 @@ qtlPlotAnnotationEnrichment <- function(cpgs, background){
 
 .libPaths(c(.libPaths(), '/users/mscherer/conda/envs/rnbeads/lib/R/library/'))
 library(RnBeads)
+library(LOLA)
 cluster1.cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/amplicon_correlation/variable_amplicons_Cluster1.csv')
 all.cpgs <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
 all.cpgs <- subset(all.cpgs, subset = Type.of.amplicon=='CpG.B.cell.diff', select='background.cpgs')
 res <- qtlPlotAnnotationEnrichment(cpgs=cluster1.cpgs$x, all.cpgs[, 'background.cpgs'])
-ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/F2_D_variable_enrichment.pdf', res$plot+coord_flip(),
+#all.cpgs <- row.names(rnb.annotation2data.frame(rnb.get.annotation('probes450')))
+#res <- qtlPlotAnnotationEnrichment(cpgs=cluster1.cpgs$x, all.cpgs)
+ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/F2_D_variable_enrichment.pdf',
+       res$plot+coord_flip()+theme(axis.text.x=element_text(size=8, angle=45, vjust=1)),
        width=140.000,
-       height=45,
+       height=40,
        units='mm')
+
+all.gr <- makeGRangesFromDataFrame(rnb.annotation2data.frame(rnb.get.annotation('probes450')))
+variable.cpgs <- all.gr[cluster1.cpgs$x]
+background.cpgs <- all.gr[all.cpgs[, 'background.cpgs']]
+#background.cpgs <- all.gr[all.cpgs]
+region.db <- loadRegionDB('/users/mscherer/cluster/project/Methylome/misc/LOLACore/hg19/')
+res <- runLOLA(userSets=variable.cpgs, userUniverse=background.cpgs, regionDB = region.db)
+plot <- lolaBarPlot(region.db, res, pvalCut = 1, maxTerms = 20)+plot_theme+theme(axis.text.x=element_text(size=8, angle=45, vjust=1))
+ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/F2_D_variable_enrichment_LOLA.pdf',
+       plot,
+       width=140.000,
+       height=100,
+       units='mm')
+
+library(rtracklayer)
+export.bed(variable.cpgs, '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/variable_cpgs.bed')
+export.bed(background.cpgs, '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/background_cpgs.bed')
+
+all.genes <- unlist(rnb.get.annotation('genes'))
+info <- rnb.annotation2data.frame(rnb.get.annotation('genes'))
+op.variable <- findOverlaps(variable.cpgs, all.genes)
+variable.ids <- unlist(strsplit(info[queryHits(op.variable), 'entrezID'], ';'))
+variable.ids <- variable.ids[!is.na(variable.ids)]
+op.all <- findOverlaps(background.cpgs, all.genes)
+all.ids <- unlist(strsplit(info[queryHits(op.all), 'entrezID'], ';'))
+all.ids <- all.ids[!is.na(all.ids)]
+library(GOstats)
+p <- new("GOHyperGParams",
+         geneIds=all.ids[1:1000],
+         universeGeneIds=all.ids,
+         ontology="BP",
+         conditional=TRUE)
+hyp <- hyperGTest(p)
+ps <- probeSetSummary(hyp, 0.05, 10)
+
