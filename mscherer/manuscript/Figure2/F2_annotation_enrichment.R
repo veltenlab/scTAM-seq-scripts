@@ -67,7 +67,7 @@ library(LOLA)
 cluster1.cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/amplicon_correlation/variable_amplicons_Cluster1.csv')
 all.cpgs <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
 all.cpgs <- subset(all.cpgs, subset = Type.of.amplicon=='CpG.B.cell.diff', select='background.cpgs')
-res <- qtlPlotAnnotationEnrichment(cpgs=cluster1.cpgs$x, all.cpgs[, 'background.cpgs'])
+res <- qtlPlotAnnotationEnrichment(cpgs=cluster1.cpgs$CpGID, all.cpgs[, 'background.cpgs'])
 #all.cpgs <- row.names(rnb.annotation2data.frame(rnb.get.annotation('probes450')))
 #res <- qtlPlotAnnotationEnrichment(cpgs=cluster1.cpgs$x, all.cpgs)
 ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/F2_D_variable_enrichment.pdf',

@@ -1,6 +1,6 @@
-############## F1_basic_statistics.R ##############
-#' This file generates basic information about the experiment, including false positive rate, false
-#' negative rate and dropout rates
+############## Supplement_HhaI_statistics.R ##############
+#' This file generates statistics about the performance of the control amplicons without a HhaI
+#' cutsite.
 
 library(ggplot2)
 cut <- 'BCells_Sample7_70_percent_good_performance'
@@ -50,25 +50,18 @@ doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionb
 doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
 dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
 ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
-selected_amplicons <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv',
-                               row.names = 1)
-in_all <- intersect(colnames(dat_cut), intersect(colnames(dat_uncut), row.names(ampli_info)))
-ampli_info <- ampli_info[][in_all, ]
-
-fpr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%"CpG.always.unmeth.B"]>0, 1, 0)
-fpr <- colMeans(fpr)
-fnr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%c("CpG.always.meth.B", "NonHhaI")]>0, 0, 1)
-fnr <- colMeans(fnr)
-dropout <- ifelse(dat_uncut>0, 0, 1)
-dropout <- colMeans(dropout)
-#fnr <- c(fnr, dropout)
-fnr <- dropout
-to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
-                             rep('FNR', length(fnr))),
-                     Value=c(fpr, fnr))
-plot <- ggplot(to_plot, aes(x=Type, y=Value))+geom_boxplot(color='black', fill='gray80', size=.25, outlier.size=.25)+plot_theme
-ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/F1_basic_statistics.pdf', 
-       plot,
-       width=50,
-       height=30,
-       units='mm')
+sel_amplicons <- row.names(ampli_info)[ampli_info$Type.of.amplicon%in%'NonHhaI']
+dropout_cut <- apply(dat_cut[, sel_amplicons], 2, function(x){
+  sum(x==0)/length(x)
+})
+dropout_uncut <- apply(dat_uncut[, sel_amplicons], 2, function(x){
+  sum(x==0)/length(x)
+})
+to_write <- data.frame(Amplicon=sel_amplicons,
+                       ampli_info[sel_amplicons, c('chr', 'amplicon_start', 'insert_start', 'insert_end', 'amplicon_end', 'fwd_seq', 'rev_seq', 'GC_Content')], 
+                       Digested=dropout_cut,
+                       Undigested=dropout_uncut,
+                       Rank=apply(data.frame(rank(dropout_cut), rank(dropout_uncut)), 1, max))
+write.csv(to_write[order(to_write$Rank), ],
+          '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Supplement/non_HhaI_amplicon_performance.csv',
+          row.names=FALSE)

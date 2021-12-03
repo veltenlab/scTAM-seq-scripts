@@ -14,6 +14,7 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
                     axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
+                    axis.text.y=element_blank(),
                     legend.position='none')
 color_map <- c('naive'='#fcbd7e',
                'memory1'='#fc6571',
@@ -30,21 +31,24 @@ cell_metadata$switch <- c('Cluster1'='Cluster1',
                           'Cluster2a'='Cluster2a',
                           'Cluster2b'='Cluster2b&c',
                           'Cluster2c'='Cluster2b&c')[cell_metadata$CellType]
-p.vals <- sapply(unique(cell_metadata$switch), function(ct1){
-  sapply(unique(cell_metadata$switch), function(ct2){
-    if(as.character(ct1)>=as.character(ct2)) return(NA)
-    unlist(apply(filtered.counts, 2, function(x, c1, c2){
-      sel_ct1 <- row.names(cell_metadata)[cell_metadata$switch%in%c1]
-      sel_ct2 <- row.names(cell_metadata)[cell_metadata$switch%in%c2]
-      sort(wilcox.test(x[sel_ct1], x[sel_ct2])$p.value)
-    }, c1=ct1, c2=ct2))
-  })
-})
-row.names(p.vals) <- colnames(p.vals) <- unique(cell_metadata$switch)
+# p.vals <- sapply(unique(cell_metadata$switch), function(ct1){
+#   sapply(unique(cell_metadata$switch), function(ct2){
+#     if(as.character(ct1)>=as.character(ct2)) return(NA)
+#     unlist(apply(filtered.counts, 2, function(x, c1, c2){
+#       sel_ct1 <- row.names(cell_metadata)[cell_metadata$switch%in%c1]
+#       sel_ct2 <- row.names(cell_metadata)[cell_metadata$switch%in%c2]
+#       sort(wilcox.test(x[sel_ct1], x[sel_ct2])$p.value)
+#     }, c1=ct1, c2=ct2))
+#   })
+# })
+# row.names(p.vals) <- colnames(p.vals) <- unique(cell_metadata$switch)
 load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/meth.data.numeric.Rdata')
 
-bcell_clusters <- unlist(p.vals['Cluster2b&c','Cluster2a'])
-bcell_clusters <- sort(bcell_clusters)[1:20]
+#bcell_clusters <- unlist(p.vals['Cluster2b&c','Cluster2a'])
+#bcell_clusters <- sort(bcell_clusters)[1:20]
+bcell_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2avsCluster2b.csv')
+bcell_clusters <- as.character(bcell_clusters$Amplicon)
+names(bcell_clusters) <- bcell_clusters
 cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/all_corrected_stan_clusters.csv', row.names=1)
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
@@ -73,7 +77,7 @@ rename_cluster <- c('Cluster2a'='ncsMBC',
 to_plot$Group.1 <- rename_cluster[to_plot$Group.1]
 
 library(viridis)
-plot <- ggplot(to_plot,aes(x=Type, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white')+
-  scale_fill_viridis(option='inferno', begin=1, end=0)+facet_wrap(Group.1~., strip.position = "top")+theme+xlab('')+
+plot <- ggplot(to_plot,aes(x=Type, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white', size=1.5)+
+  scale_fill_viridis(option='inferno', begin=1, end=0)+facet_wrap(Group.1~., strip.position = "top")+xlab('')+
   plot_theme
-ggsave(file.path(plot_path, 'F2_B_subset_comparison.pdf'), plot, width=135, height=105, units='mm')
+ggsave(file.path(plot_path, 'F2_B_subset_comparison.pdf'), plot, width=200, height=180, units='mm')
