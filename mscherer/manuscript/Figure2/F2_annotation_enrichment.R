@@ -83,30 +83,9 @@ background.cpgs <- all.gr[all.cpgs[, 'background.cpgs']]
 region.db <- loadRegionDB('/users/mscherer/cluster/project/Methylome/misc/LOLACore/hg19/')
 res <- runLOLA(userSets=variable.cpgs, userUniverse=background.cpgs, regionDB = region.db)
 plot <- lolaBarPlot(region.db, res, pvalCut = 1, maxTerms = 20)+plot_theme+theme(axis.text.x=element_text(size=8, angle=45, vjust=1))
-ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/F2_D_variable_enrichment_LOLA.pdf',
+ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/F2_D_variable_enrichment_LOLA_Cluster1.pdf',
        plot,
        width=140.000,
        height=100,
        units='mm')
-
-library(rtracklayer)
-export.bed(variable.cpgs, '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/variable_cpgs.bed')
-export.bed(background.cpgs, '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/background_cpgs.bed')
-
-all.genes <- unlist(rnb.get.annotation('genes'))
-info <- rnb.annotation2data.frame(rnb.get.annotation('genes'))
-op.variable <- findOverlaps(variable.cpgs, all.genes)
-variable.ids <- unlist(strsplit(info[queryHits(op.variable), 'entrezID'], ';'))
-variable.ids <- variable.ids[!is.na(variable.ids)]
-op.all <- findOverlaps(background.cpgs, all.genes)
-all.ids <- unlist(strsplit(info[queryHits(op.all), 'entrezID'], ';'))
-all.ids <- all.ids[!is.na(all.ids)]
-library(GOstats)
-p <- new("GOHyperGParams",
-         geneIds=all.ids[1:1000],
-         universeGeneIds=all.ids,
-         ontology="BP",
-         conditional=TRUE)
-hyp <- hyperGTest(p)
-ps <- probeSetSummary(hyp, 0.05, 10)
 

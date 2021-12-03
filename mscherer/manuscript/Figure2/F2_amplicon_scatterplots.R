@@ -49,7 +49,7 @@ cluster_meth <- cluster_meth[row.names(amplicon.info), ]
 selected_data <- selected_data[, row.names(amplicon.info)]
 
 for(clust in unique(cell_metadata$CellType_reclustering)){
-  selected_amplicons <- cluster_meth[, clust]>0.25&cluster_meth[, clust]<0.75
+  selected_amplicons <- cluster_meth[, clust]>0.3&cluster_meth[, clust]<0.7
 #  vars <- apply(selected[cell_metadata$CellType_reclustering%in%clust, ], 2, var)
 #  selected_amplicons <- rank(vars)>(length(vars)-30)|rank(vars)<10
 #  selected_amplicons <- rank(vars)>(length(vars)-20)#|rank(vars)<10
