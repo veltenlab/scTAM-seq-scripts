@@ -34,15 +34,21 @@ for(clust1 in names(file_map)){
     p.vals <- apply(filtered.counts, 2, function(x){
       wilcox.test(x[sel_cells1], x[sel_cells2])$p.value
     })
+    mean.diff <- apply(filtered.counts, 2, function(x){
+      c1 <- mean(ifelse(x[sel_cells1]>0, 1, 0))
+      c2 <- mean(ifelse(x[sel_cells2]>0, 1, 0))
+      c1-c2
+    })
     p.vals <- p.adjust(p.vals)
     p.vals[is.na(p.vals)] <- 1
-    diff_amplicons <- colnames(filtered.counts)[p.vals<0.01]
+    diff_amplicons <- colnames(filtered.counts)[p.vals<0.01&abs(mean.diff)>0.25]
     diff_cpgs <- more_info[diff_amplicons, 'background.cpgs']
     to_write <- data.frame(Amplicon=diff_amplicons,
                            CpGID=diff_cpgs,
-                           PValue=p.vals[p.vals<0.01])
+                           PValue=p.vals[p.vals<0.01&abs(mean.diff)>0.25],
+                           MeanDiff=mean.diff[p.vals<0.01&abs(mean.diff)>0.25])
     diff_cpgs <- background.cpgs[diff_cpgs]
-    write.csv(to_write, file.path(plot_path, paste('differential_CpGs_', paste0(clust1, 'vs', clust2), '.csv')))
+    write.csv(to_write, file.path(plot_path, paste0('differential_CpGs_', paste0(clust1, 'vs', clust2), '.csv')))
     anno <- read.table(file_map[clust1])
     anno <- makeGRangesFromDataFrame(anno,
                                      seqnames.field = 'V1',

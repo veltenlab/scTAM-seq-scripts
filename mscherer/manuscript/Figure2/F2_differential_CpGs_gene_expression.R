@@ -53,5 +53,5 @@ map <- c('Class-switched memory B cells'='class-switched memory B-cell',
 to_plot$CellType <- map[as.character(idents)]
 to_plot <- reshape2::melt(to_plot, id='CellType')
 colnames(to_plot)[2:3] <- c('Gene', 'NormalizedExpression')
-to_plot <- to_plot[to_plot$NormalizedExpression>0, ]
+#to_plot <- to_plot[to_plot$NormalizedExpression>0, ]
 plot <- ggplot(to_plot, aes(x=CellType, y=NormalizedExpression))+geom_violin()+facet_wrap(Gene~.)+plot_theme

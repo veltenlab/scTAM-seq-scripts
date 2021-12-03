@@ -28,9 +28,9 @@ amplicon.info <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/sc
 selected <- ifelse(filtered.counts[row.names(cell_metadata), ]>0, 1, 0)
 
 cell_metadata$switch <- c('Cluster1'='Cluster1',
-                          'Cluster2a'='Cluster2a',
-                          'Cluster2b'='Cluster2b&c',
-                          'Cluster2c'='Cluster2b&c')[cell_metadata$CellType]
+                          'Cluster2a'='Cluster2a&c',
+                          'Cluster2b'='Cluster2b',
+                          'Cluster2c'='Cluster2a&c')[cell_metadata$CellType]
 # p.vals <- sapply(unique(cell_metadata$switch), function(ct1){
 #   sapply(unique(cell_metadata$switch), function(ct2){
 #     if(as.character(ct1)>=as.character(ct2)) return(NA)
@@ -44,12 +44,14 @@ cell_metadata$switch <- c('Cluster1'='Cluster1',
 # row.names(p.vals) <- colnames(p.vals) <- unique(cell_metadata$switch)
 load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/meth.data.numeric.Rdata')
 
-#bcell_clusters <- unlist(p.vals['Cluster2b&c','Cluster2a'])
+#bcell_clusters <- unlist(p.vals['Cluster2b','Cluster2a&c'])
 #bcell_clusters <- sort(bcell_clusters)[1:20]
 bcell_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2avsCluster2b.csv')
 bcell_clusters <- as.character(bcell_clusters$Amplicon)
 names(bcell_clusters) <- bcell_clusters
 cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/all_corrected_stan_clusters.csv', row.names=1)
+cluster_meth_mem <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/all_corrected_stan_2a_2c.csv', row.names=1)
+cluster_meth$Cluster2a2c <- cluster_meth_mem[row.names(cluster_meth), 'x']
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
 more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
@@ -58,26 +60,28 @@ joint_names <- intersect(row.names(more_info), names(bcell_clusters))
 bcell_clusters <- bcell_clusters[joint_names]
 cluster_meth <- cluster_meth[joint_names, ]
 names(bcell_clusters) <- more_info[names(bcell_clusters), 'background.cpgs']
-row.names(cluster_meth) <- more_info[row.names(cluster_meth), 'background.cpgs']
+n.ames <- more_info[row.names(cluster_meth), 'background.cpgs']
+row.names(cluster_meth) <- n.ames
 cluster_meth <- cluster_meth[!is.na(row.names(cluster_meth)),]
 mean_classes <- aggregate(t(meth.data.numeric[row.names(cluster_meth), ]), by=list(cell_assignment$V2), mean)
-cluster_meth <- data.frame(Group.1=c('Cluster2a', 'Cluster2b&c'),
-                           rbind(cluster_meth$Cluster2a,
-                            rowMeans(cluster_meth[, c('Cluster2b','Cluster2c')])))
+cluster_meth <- data.frame(Group.1=c('Cluster2a2c', 'Cluster2b'),
+                           rbind(cluster_meth$Cluster2a2c,
+                                 cluster_meth$Cluster2b))
+colnames(cluster_meth) <- c('Group.1', n.ames)
 to_plot <- data.frame(Type=c('Bulk', 'Bulk', 'SingleCell', 'SingleCell'),
                       rbind(mean_classes, 
                             cluster_meth))
 to_plot <- reshape2::melt(to_plot, id=c('Group.1', 'Type'))
 colnames(to_plot)[3:4] <- c('CpGID', 'Methylation')
 to_plot$CpGID <- factor(to_plot$CpGID, levels=unique(names(sort(bcell_clusters, decreasing=TRUE))))
-rename_cluster <- c('Cluster2a'='ncsMBC',
-                    'Cluster2b&c'='csMBC',
+rename_cluster <- c('Cluster2a2c'='ncsMBC',
+                    'Cluster2b'='csMBC',
                     'csMBC'='csMBC',
                     'ncsMBC'='ncsMBC')
 to_plot$Group.1 <- rename_cluster[to_plot$Group.1]
 
 library(viridis)
-plot <- ggplot(to_plot,aes(x=Type, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white', size=1.5)+
+plot <- ggplot(to_plot,aes(x=Type, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white', size=2)+
   scale_fill_viridis(option='inferno', begin=1, end=0)+facet_wrap(Group.1~., strip.position = "top")+xlab('')+
   plot_theme
 ggsave(file.path(plot_path, 'F2_B_subset_comparison.pdf'), plot, width=200, height=180, units='mm')
