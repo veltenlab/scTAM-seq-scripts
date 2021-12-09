@@ -42,11 +42,13 @@ panel_gr <- makeGRangesFromDataFrame(more_info[row.names(colinfo), ],
                                       start.field='Start.hg19',
                                       end.field='End.hg19')
 op_1 <- findOverlaps(panel_gr, atac_naive_clust_1)
-colinfo$ATAC_naiveB_I <- values(atac_naive_clust_1)[subjectHits(op_1), 'score']
+colinfo$ATAC_naiveB_I <- log(values(atac_naive_clust_1)[subjectHits(op_1), 'score']+1)
 op_2 <- findOverlaps(panel_gr, atac_naive_clust_2)
-colinfo$ATAC_naiveB_II <- values(atac_naive_clust_2)[subjectHits(op_2), 'score']
+colinfo$ATAC_naiveB_II <- log(values(atac_naive_clust_2)[subjectHits(op_2), 'score']+1)
 op_3 <- findOverlaps(panel_gr, atac_naive_clust_3)
-colinfo$ATAC_naiveB_III <- values(atac_naive_clust_3)[subjectHits(op_3), 'score']
+colinfo$ATAC_naiveB_III <- log(values(atac_naive_clust_3)[subjectHits(op_3), 'score']+1)
+diff_cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential_naive/differential_CpGs_Cluster1avsCluster1b.csv')
+colinfo$Differential <- ifelse(row.names(colinfo)%in%diff_cpgs$X, 'differential', 'other')
 selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_amplicons)]>0, 1, 0)
 #selected_data <- ifelse(filtered.counts[row.names(rowinfo), ]>0, 1, 0)
 selected_data <- selected_data[rowinfo$Doublet%in%'Singlet', ]
@@ -60,7 +62,7 @@ png(file.path(plot_path, 'heatmap_complete_reclustering_naive_only.png'),
     width=1000,
     height=1600)
 ph <- pheatmap(selected_data[rowinfo$CellType_reclustering%in%'Cluster1', ], 
-               annotation_col = subset(colinfo, select = c('NBC.mean', 'MBC.mean', 'S1.mean', 'S2.mean', 'S3.mean', 'S4.mean', 'ATAC_naiveB_I', 'ATAC_naiveB_II', 'ATAC_naiveB_III')),
+               annotation_col = subset(colinfo, select = c('NBC.mean', 'MBC.mean', 'S1.mean', 'S2.mean', 'S3.mean', 'S4.mean', 'ATAC_naiveB_I', 'ATAC_naiveB_II', 'ATAC_naiveB_III', 'Differential')),
                annotation_row = subset(rowinfo, select = c("CellType_reclustering", "Nfeatures")), 
                clustering_distance_cols = "binary", 
                clustering_distance_rows = "binary", 
