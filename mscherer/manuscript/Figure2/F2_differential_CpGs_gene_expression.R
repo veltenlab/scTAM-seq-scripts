@@ -22,7 +22,7 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     legend.key=element_rect(color=NA, fill=NA),
                     legend.position='none')
 
-sel.cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_ Cluster2avsCluster2b .csv')
+sel.cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2avsCluster2b.csv')
 sel.cpgs <- cpgs[sel.cpgs$CpGID]
 
 closest.genes <- c()
@@ -55,3 +55,5 @@ to_plot <- reshape2::melt(to_plot, id='CellType')
 colnames(to_plot)[2:3] <- c('Gene', 'NormalizedExpression')
 #to_plot <- to_plot[to_plot$NormalizedExpression>0, ]
 plot <- ggplot(to_plot, aes(x=CellType, y=NormalizedExpression))+geom_violin()+facet_wrap(Gene~.)+plot_theme
+
+FeaturePlot(seurat.obj, features=as.character(unique(to_plot$Gene)), reduction = 'Projected')

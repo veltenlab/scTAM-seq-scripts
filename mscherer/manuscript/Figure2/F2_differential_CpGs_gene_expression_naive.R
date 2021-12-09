@@ -37,9 +37,9 @@ sel_genes <- na.omit(names(closest.distance)[which(closest.distance==0)])
 seurat.obj <- readRDS('/users/mscherer/cluster/project/AML/gene_expression/data/Sergio_figshare/WTA_projected.rds')
 gene_exp_data <- GetAssayData(seurat.obj, slot='data')
 idents <- Idents(seurat.obj)
-sel_data <- gene_exp_data[sel_genes[sel_genes%in%row.names(gene_exp_data)], idents%in%c('Mature naive B cells', 'Immature B cells')]
+sel_data <- gene_exp_data[sel_genes[sel_genes%in%row.names(gene_exp_data)], idents%in%c('Mature naive B cells', 'Immature B cells', 'Small pre-B cell', 'pro-B cells')]
 to_plot <- as.data.frame(t(as.data.frame(sel_data)))
-idents <- idents[idents%in%c('Mature naive B cells', 'Immature B cells')]
+idents <- idents[idents%in%c('Mature naive B cells', 'Immature B cells', 'Small pre-B cell', 'pro-B cells')]
 wilcox.p <- apply(to_plot, 2, function(x){
   c1 <- x[idents%in%'Mature naive B cells']
   c2 <- x[idents%in%'Immature B cells']
@@ -49,9 +49,13 @@ wilcox.p <- apply(to_plot, 2, function(x){
   wilcox.test(c1, c2)$p.value
 })
 map <- c('Mature naive B cells'='Mature naive B cells',
-         'Immature B cells'='Immature B cells')
+         'Immature B cells'='Immature B cells', 
+         'Small pre-B cell'='Small pre-B cell',
+         'pro-B cells'='pro-B cells')
 to_plot$CellType <- map[as.character(idents)]
 to_plot <- reshape2::melt(to_plot, id='CellType')
 colnames(to_plot)[2:3] <- c('Gene', 'NormalizedExpression')
-to_plot <- to_plot[to_plot$NormalizedExpression>0, ]
+#to_plot <- to_plot[to_plot$NormalizedExpression>0, ]
 plot <- ggplot(to_plot, aes(x=CellType, y=NormalizedExpression))+geom_violin()+facet_wrap(Gene~.)+plot_theme
+
+FeaturePlot(seurat.obj, features=as.character(unique(to_plot$Gene)), reduction = 'Projected')

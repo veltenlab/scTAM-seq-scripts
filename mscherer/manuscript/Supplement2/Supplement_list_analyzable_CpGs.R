@@ -3,6 +3,7 @@
 #' which of those are located in what kind of regulatory elements with respect to the chromatin
 #' states defined in naive BCells.
 
+.libPaths(c(.libPaths(), '/users/mscherer/conda/envs/rnbeads/lib/R/library/'))
 library(RnBeads)
 library(RnBeads.hg19)
 library(BSgenome.Hsapiens.UCSC.hg19)
@@ -26,11 +27,10 @@ for(chr in names(cpgs)){
     sel.cpgs <- cpgs[[chr]]
     sel.seq <- genome[[chr]]
     res <- matchPattern(cut.seq, sel.seq)
-    cut.sites <- findOverlaps(sel.cpgs@ranges, res@ranges)
+    cut.sites <- findOverlaps(sel.cpgs@ranges, res@ranges, minoverlap = 2)
     has.cut.chr <- rep(FALSE, length(sel.cpgs))
     has.cut.chr[queryHits(cut.sites)] <- TRUE
     has.cut[[chr]] <- has.cut.chr
-    sel.cpgs <- cpgs[[chr]]
     sel.cpgs <- resize(sel.cpgs, width = width(sel.cpgs)+300, fix='center')
     res <- matchPattern(cut.seq, sel.seq)
     cut.sites <- findOverlaps(sel.cpgs@ranges, res@ranges)

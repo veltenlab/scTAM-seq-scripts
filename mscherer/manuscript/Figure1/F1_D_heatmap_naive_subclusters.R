@@ -4,6 +4,7 @@
 
 library(pheatmap)
 library(viridis)
+library(rtracklayer)
 color_map <- list(CellType=c('naive'='#fcbd7e',
                              'memory1'='#fc6571',
                              'memory2'='#fc3262'),
@@ -24,13 +25,28 @@ rowinfo$Sex <- cell.info[row.names(rowinfo), 'sex']
 selected_amplicons <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv',
                                row.names = 1)
 filtered.counts <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
-amplicon.info <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv", header=T, row.names = 1)
-selected_amplicons <- amplicon.info[amplicon.info$Type.of.amplicon%in%"CpG.B.cell.diff", ]
+#amplicon.info <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv", header=T, row.names = 1)
+#selected_amplicons <- amplicon.info[amplicon.info$Type.of.amplicon%in%"CpG.B.cell.diff", ]
 
 bulk.methylation <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
 row.names(bulk.methylation) <- bulk.methylation$amplicon
 colinfo <- bulk.methylation[row.names(selected_amplicons), c('NBC.mean', 'MBC.mean', 'S1.mean', 'S2.mean', 'S3.mean', 'S4.mean')]
 colinfo$Class <- ifelse(colinfo$NBC.mean>colinfo$MBC.mean, 'Naive B-cell high', 'Memory B-cell high')
+atac_naive_clust_1 <- import('/users/mscherer/cluster/project/Methylome/data/external/ATAC/Satpathy/Naive_B_I-TileSize-500-normMethod-ReadsInTSS-ArchR.bw')
+atac_naive_clust_2 <- import('/users/mscherer/cluster/project/Methylome/data/external/ATAC/Satpathy/Naive_B_II-TileSize-500-normMethod-ReadsInTSS-ArchR.bw')
+atac_naive_clust_3 <- import('/users/mscherer/cluster/project/Methylome/data/external/ATAC/Satpathy/Naive_B_III-TileSize-500-normMethod-ReadsInTSS-ArchR.bw')
+more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt',
+                        row.names=8)
+panel_gr <- makeGRangesFromDataFrame(more_info[row.names(colinfo), ],
+                                      seqnames.field='Chr.hg19',
+                                      start.field='Start.hg19',
+                                      end.field='End.hg19')
+op_1 <- findOverlaps(panel_gr, atac_naive_clust_1)
+colinfo$ATAC_naiveB_I <- values(atac_naive_clust_1)[subjectHits(op_1), 'score']
+op_2 <- findOverlaps(panel_gr, atac_naive_clust_2)
+colinfo$ATAC_naiveB_II <- values(atac_naive_clust_2)[subjectHits(op_2), 'score']
+op_3 <- findOverlaps(panel_gr, atac_naive_clust_3)
+colinfo$ATAC_naiveB_III <- values(atac_naive_clust_3)[subjectHits(op_3), 'score']
 selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_amplicons)]>0, 1, 0)
 #selected_data <- ifelse(filtered.counts[row.names(rowinfo), ]>0, 1, 0)
 selected_data <- selected_data[rowinfo$Doublet%in%'Singlet', ]
@@ -44,7 +60,7 @@ png(file.path(plot_path, 'heatmap_complete_reclustering_naive_only.png'),
     width=1000,
     height=1600)
 ph <- pheatmap(selected_data[rowinfo$CellType_reclustering%in%'Cluster1', ], 
-               annotation_col = subset(colinfo, select = c('NBC.mean', 'MBC.mean', 'S1.mean', 'S2.mean', 'S3.mean', 'S4.mean')),
+               annotation_col = subset(colinfo, select = c('NBC.mean', 'MBC.mean', 'S1.mean', 'S2.mean', 'S3.mean', 'S4.mean', 'ATAC_naiveB_I', 'ATAC_naiveB_II', 'ATAC_naiveB_III')),
                annotation_row = subset(rowinfo, select = c("CellType_reclustering", "Nfeatures")), 
                clustering_distance_cols = "binary", 
                clustering_distance_rows = "binary", 
