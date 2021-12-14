@@ -25,8 +25,8 @@ echo "$(date): Start MissionBio Tapestri Pipeline"
 #adapter_sequence_a="CTGTCTCTTATA"
 #adapter_sequence_g="TATAAGAGACAG"
 ref_genome="/users/lvelten/project/Methylome/references/MissionBio/hg19/ucsc_hg19.fa"
-panel_bed="/users/lvelten/project/Methylome/infos/cell_lines/TapestriDesigner/1898.bed"
-ampli_file="/users/lvelten/project/Methylome/infos/amplicon_info/200804_Design_Mission_Bio_sites_Jurkat_K562.tsv"
+panel_bed="/users/lvelten/project/Methylome/infos/BCells/panel.bed"
+ampli_file="/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.tsv"
 cellfinder_cutoff=0.7
 tmp_folder=${output}/tmp
 mkdir $tmp_folder
@@ -64,8 +64,8 @@ tmp_bam=${tmp_folder}/tmp.bam
 bwa mem -C -M -t $cores -H $sam_header $ref_genome $in_first $in_second > $sam_file
 samtools view -@ $cores -S -b $sam_file > $tmp_bam
 samtools view -@ $cores -bh -q 30 -F 4 -F 8 -F 0X0100 $tmp_bam > $out_file
-rm -rf $sam_file
-rm -rf $tmp_bam
+#rm -rf $sam_file
+#rm -rf $tmp_bam
 
 ## Running picard
 echo "###################################################################################################"
@@ -93,7 +93,7 @@ in_file=$out_file
 out_file=${output}/tsv/
 mkdir $out_file
 out_file=${out_file}/${name}.barcode.cell.distribution.tsv
-Rscript /users/lvelten/project/Methylome/src/MissionBio/cellfinder_BCells_selected.R -f $in_file -a $ampli_file -c $cellfinder_cutoff -o $out_file
+Rscript /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/cellfinder_BCells_selected.R -f $in_file -a $ampli_file -c $cellfinder_cutoff -o $out_file
 
 # Calculate reads per cell    
 echo "###################################################################################################"
@@ -107,13 +107,6 @@ out_file=${output}/bam/${name}.cells.bam
 samtools view -@ $cores -b -R $in_file ${output}/bam/${name}_aligned_fixed.bam > $out_file
 samtools index $out_file
 python3 -m missionbio.dna.calculate_reads_mapped_to_cells --tsv ${output}/tsv/${name}.barcode.cell.distribution.tsv > ${output}/tsv/read_to_cells.txt
-
-# Run DoubletDetection
-echo "###################################################################################################"
-echo "$(date): Running DoubletDetection"
-in_doublet=${output}/tsv/${name}.barcode.cell.distribution.tsv
-out_doublet=${output}/tsv/doublet_scores_DoubletDetection.csv
-python3 /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/DoubletDetection.py --input $in_doublet --output $out_doublet
 
 # DONE!
 echo "###################################################################################################"
@@ -160,7 +153,7 @@ tabix ${out_file}.gz
 # PART II
 
 # Generate the h5 file for further exploration
-echo "###################################################################################################"
+echo "##########/users/lvelten/project/Methylome/src/MissionBio/metadata.json#########################################################################################"
 echo "$(date): Generate the final h5 file"
 in_file=${out_file}.gz
 count_file=${output}/tsv/${name}.barcode.cell.distribution.tsv
@@ -173,8 +166,8 @@ tapestri h5 create dna \
 
 #Cleaning up
 rm -rf $tmp_folder
-rm -rf ${output}/bam/${name}_aligned*
-rm -rf ${output}/barcode/
+#rm -rf ${output}/bam/${name}_aligned*
+#rm -rf ${output}/barcode/
 
 echo "###################################################################################################"
 echo "$(date): Finished the MissionBio pipeline"
