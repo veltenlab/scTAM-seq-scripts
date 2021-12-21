@@ -5,32 +5,37 @@
 library(ggplot2)
 library(pheatmap)
 plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/'
+cut <- 'Sample7_70_percent_good_performance'
+uncut <- 'Sample6_70_percent_good_performance'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=10),
-                    axis.text=element_text(color='black',size=8),
-                    axis.ticks=element_line(color='black'),
+                    text=element_text(color='black',size=6),
+                    axis.text=element_text(color='black',size=5),
+                    axis.ticks=element_line(color='black', size=.25),
                     strip.background = element_blank(),
-                    strip.text.x = element_blank(),
+#                    strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
                     axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
-                    axis.text.y=element_blank(),
+#                    axis.text.y=element_blank(),
                     legend.position='none')
 color_map <- c('naive'='#fcbd7e',
                'memory1'='#fc6571',
                'memory2'='#fc3262')
 
-filtered.counts <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
-cell_metadata <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/cell_metadata.csv',
-                          row.names=1)
-amplicon.info <- read.csv("/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv", row.names = 1)
+filtered.counts <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
+                              sep="\t", 
+                              header=T)
+cell_metadata <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', cut, '/tsv/rowinfo.csv'),
+                          row.names = 1)
+amplicon.info <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", uncut, "/tsv/selected_amplicons.tsv"),
+                            row.names = 1)
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), ]>0, 1, 0)
 
 cell_metadata$switch <- c('Cluster1'='Cluster1',
-                          'Cluster2a'='Cluster2a&c',
+                          'Cluster2a'='Cluster2a',
                           'Cluster2b'='Cluster2b',
-                          'Cluster2c'='Cluster2a&c')[cell_metadata$CellType]
+                          'Cluster2c'='Cluster2c')[cell_metadata$Cluster]
 # p.vals <- sapply(unique(cell_metadata$switch), function(ct1){
 #   sapply(unique(cell_metadata$switch), function(ct2){
 #     if(as.character(ct1)>=as.character(ct2)) return(NA)
@@ -49,9 +54,8 @@ load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/me
 bcell_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2avsCluster2b.csv')
 bcell_clusters <- as.character(bcell_clusters$Amplicon)
 names(bcell_clusters) <- bcell_clusters
-cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/all_corrected_stan_clusters.csv', row.names=1)
-cluster_meth_mem <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/all_corrected_stan_2a_2c.csv', row.names=1)
-cluster_meth$Cluster2a2c <- cluster_meth_mem[row.names(cluster_meth), 'x']
+bcell_clusters <- sort(bcell_clusters, decreasing = TRUE)[1:20]
+cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/clusters/all_amplicons_clusters.csv', row.names=1)
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
 more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
@@ -64,8 +68,8 @@ n.ames <- more_info[row.names(cluster_meth), 'background.cpgs']
 row.names(cluster_meth) <- n.ames
 cluster_meth <- cluster_meth[!is.na(row.names(cluster_meth)),]
 mean_classes <- aggregate(t(meth.data.numeric[row.names(cluster_meth), ]), by=list(cell_assignment$V2), mean)
-cluster_meth <- data.frame(Group.1=c('Cluster2a2c', 'Cluster2b'),
-                           rbind(cluster_meth$Cluster2a2c,
+cluster_meth <- data.frame(Group.1=c('Cluster2a', 'Cluster2b'),
+                           rbind(cluster_meth$Cluster2a,
                                  cluster_meth$Cluster2b))
 colnames(cluster_meth) <- c('Group.1', n.ames)
 to_plot <- data.frame(Type=c('Bulk', 'Bulk', 'SingleCell', 'SingleCell'),
@@ -74,7 +78,7 @@ to_plot <- data.frame(Type=c('Bulk', 'Bulk', 'SingleCell', 'SingleCell'),
 to_plot <- reshape2::melt(to_plot, id=c('Group.1', 'Type'))
 colnames(to_plot)[3:4] <- c('CpGID', 'Methylation')
 to_plot$CpGID <- factor(to_plot$CpGID, levels=unique(names(sort(bcell_clusters, decreasing=TRUE))))
-rename_cluster <- c('Cluster2a2c'='ncsMBC',
+rename_cluster <- c('Cluster2a'='ncsMBC',
                     'Cluster2b'='csMBC',
                     'csMBC'='csMBC',
                     'ncsMBC'='ncsMBC')
@@ -84,4 +88,4 @@ library(viridis)
 plot <- ggplot(to_plot,aes(x=Type, y=CpGID, fill=Methylation))+geom_tile()+geom_text(aes(label=format(Methylation, digits = 2)), color='white', size=2)+
   scale_fill_viridis(option='inferno', begin=1, end=0)+facet_wrap(Group.1~., strip.position = "top")+xlab('')+
   plot_theme
-ggsave(file.path(plot_path, 'F2_B_subset_comparison.pdf'), plot, width=200, height=180, units='mm')
+ggsave(file.path(plot_path, 'F2_B_subset_comparison.pdf'), plot, width=82, height=70, units='mm')

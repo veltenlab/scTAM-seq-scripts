@@ -3,6 +3,7 @@
 
 library(pheatmap)
 library(viridis)
+sample <- 'Sample7_70_percent_good_performance_HP'
 color_map <- list(CellType=c('naive'='#fcbd7e',
                              'memory1'='#fc6571',
                              'memory2'='#fc3262'),
@@ -15,9 +16,12 @@ color_map <- list(CellType=c('naive'='#fcbd7e',
                                           'Cluster2b'='#bd0071',
                                           'Cluster2c'='#8e008e'))
 plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/cluster_heatmaps/'
-rowinfo <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/rowinfo_reclustering_doublet.csv',
+rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/rowinfo.csv'),
                     row.names = 1)
-filtered.counts <- read.table("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/BCells_Sample7_70_percent_good_performance.barcode.cell.distribution_with_MCL.tsv", row.names = 1, header=T)
+filtered.counts <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/",
+  sample, '/tsv/', sample, '.barcode.cell.distribution.tsv'),
+  row.names = 1,
+  header=T)
 filtered.counts <- ifelse(filtered.counts>0, 1, 0)
 load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/meth.data.numeric.Rdata')
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')

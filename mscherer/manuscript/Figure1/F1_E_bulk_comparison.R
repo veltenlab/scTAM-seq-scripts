@@ -5,21 +5,20 @@
 
 
 library(ggplot2)
-plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1//'
+plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample8/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=10),
-                    axis.text=element_text(color='black',size=8),
-                    axis.ticks=element_line(color='black'),
+                    text=element_text(color='black',size=6),
+                    axis.text=element_text(color='black',size=5),
+                    axis.ticks=element_line(color='black', size=.25),
                     strip.background = element_blank(),
                     strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
-                    axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
-               legend.position='none')
+                    legend.position='none')
 color_map <- c('Naive'='#fcbd7e',
                'Memory'='#fc3262')
 
-means_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/all_corrected_stan_memory_naive.csv', row.names=1)
+means_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/Sample8/all_corrected_amplicons_naive_memory.csv', row.names=1)
 bulk_table <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
 means_bulk <- bulk_table[, c('NBC.mean', 'MBC.mean')]
 colnames(means_bulk) <- c('naiveB', 'memoryB')
@@ -45,9 +44,9 @@ cors <- t(as.data.frame(apply(to_plot, 1, function(x){
 })))
 to_plot$Correlation <- cors[,1]
 to_plot$CorrelationPVal <- cors[,2]
-plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='CellType'))+geom_point()+geom_smooth(method='lm',se=FALSE)+xlim(0, 1)+ylim(0,1)+
+plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='CellType'))+geom_point(size=.7)+geom_smooth(method='lm',se=FALSE)+xlim(0, 1)+ylim(0,1)+
   facet_wrap(Bulk~CellType, nrow=2)+
-  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), x=0.35, y=0.9, check_overlap=TRUE, color='black')+
+  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), x=0.4, y=0.9, check_overlap=TRUE, color='black', size=2.5)+
   plot_theme+
   scale_color_manual(values=color_map)+ylab('Pseudo-bulk methylation')+xlab('Bulk methylation')
-ggsave(file.path(plot_path, 'F1_E_bulk_vs_singlecell.pdf'), plot, width=110, height=120, units='mm')
+ggsave(file.path(plot_path, 'F1_E_bulk_vs_singlecell.pdf'), plot, width=65, height=80, units='mm')

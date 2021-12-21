@@ -3,14 +3,14 @@
 #' negative rate and dropout rates
 
 library(ggplot2)
-cut <- 'BCells_Sample7_70_percent_good_performance'
-uncut <- 'BCells_Sample6_70_percent_good_performance'
-plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+cut <- 'Sample8_70_percent_good_performance'
+uncut <- 'Sample6_70_percent_good_performance'
+plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample8/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=10),
-                    axis.text=element_text(color='black',size=8),
-                    axis.ticks=element_line(color='black'),
+                    text=element_text(color='black',size=6),
+                    axis.text=element_text(color='black',size=5),
+                    axis.ticks=element_line(color='black', size=.25),
                     strip.background = element_blank(),
                     strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
@@ -34,41 +34,38 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/", cut, "/tsv/", cut, ".barcode.cell.distribution_with_MCL.tsv"), 
+dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-rowinfo <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/rowinfo_reclustering_doublet.csv',
+rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/rowinfo.csv'),
                     row.names = 1)
-doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/reclustering_doublet_names.csv')
-double2 <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
-doublets <- c(doublet$x, double2$Barcode[double2$DoubletDetectionLabel==1])
-dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
-dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                         sep="\t", 
                         header=T)
-doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample6_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
-doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
+doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
+                           uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
+doublets <- c(doublet$Barcode[which(doublet$DoubletDetectionLabel==1)])
 dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
 ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
-selected_amplicons <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/selected_amplicons.csv',
+selected_amplicons <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
+                                      uncut, '/tsv/selected_amplicons.tsv'),
                                row.names = 1)
 in_all <- intersect(colnames(dat_cut), intersect(colnames(dat_uncut), row.names(ampli_info)))
 ampli_info <- ampli_info[][in_all, ]
 
-fpr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%"CpG.always.unmeth.B"]>0, 1, 0)
+fpr <- ifelse(dat_cut[row.names(rowinfo), ampli_info$Type.of.amplicon%in%"CpG.always.unmeth.B"]>0, 1, 0)
 fpr <- colMeans(fpr)
-fnr <- ifelse(dat_cut[, ampli_info$Type.of.amplicon%in%c("CpG.always.meth.B", "NonHhaI")]>0, 0, 1)
+fnr <- ifelse(dat_cut[row.names(rowinfo), ampli_info$Type.of.amplicon%in%"CpG.always.meth.B"]>0, 0, 1)
 fnr <- colMeans(fnr)
-dropout <- ifelse(dat_uncut>0, 0, 1)
+dropout <- ifelse(dat_cut[row.names(rowinfo), ampli_info$Type.of.amplicon%in%"NonHhaI"]>0, 0, 1)
 dropout <- colMeans(dropout)
-#fnr <- c(fnr, dropout)
-fnr <- dropout
 to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
-                             rep('FNR', length(fnr))),
-                     Value=c(fpr, fnr))
+                             rep('FNR', length(fnr)),
+                             rep('Dropout', length(dropout))),
+                     Value=c(fpr, fnr, dropout))
 plot <- ggplot(to_plot, aes(x=Type, y=Value))+geom_boxplot(color='black', fill='gray80', size=.25, outlier.size=.25)+plot_theme
 ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/F1_basic_statistics.pdf', 
        plot,
-       width=50,
-       height=30,
+       width=35,
+       height=20,
        units='mm')

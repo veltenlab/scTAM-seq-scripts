@@ -3,7 +3,8 @@
 #' sample. Dropout is defined as those cells having 0 reads at this particular amplicon
 
 library(ggplot2)
-cut <- 'Sample8_80_percent_good_performance'
+cut <- 'Sample8_70_percent_good_performance'
+s7 <- 'Sample7_70_percent_good_performance'
 uncut <- 'Sample6_70_percent_good_performance'
 plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample8/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
@@ -44,6 +45,18 @@ doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/
   cut, '/tsv/doublet_scores_DoubletDetection.csv'))
 doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
 dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
+dat_s7 <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", s7, "/tsv/", s7, ".barcode.cell.distribution.tsv"), 
+                      sep="\t", 
+                      header=T)
+doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
+                            s7, '/tsv/doublet_scores_DoubletDetection.csv'))
+doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
+dat_s7 <- dat_s7[!(row.names(dat_s7)%in%doublets), ]
+colliding.barcodes <- plyr::count(c(row.names(dat_cut), row.names(dat_s7)))
+colliding.barcodes <- colliding.barcodes[colliding.barcodes$freq>1, 'x']
+dat_cut <- dat_cut[-(which(row.names(dat_cut)%in%colliding.barcodes)), ]
+dat_s7 <- dat_s7[-(which(row.names(dat_s7)%in%colliding.barcodes)), ]
+dat_cut <- as.data.frame(rbind(dat_cut, dat_s7))
 dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/",
                                uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
@@ -78,7 +91,7 @@ plot_theme <- plot_theme+theme(axis.text.x=element_text(angle=90, hjust=1, vjust
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~.)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+  plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all.pdf'), plot, width=175, height=100, units='mm')
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all_merged.pdf'), plot, width=175, height=100, units='mm')
 to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
                                      "Differential CpG Bcells",
                                      "Always unmethylated CpG in Bcells",
@@ -92,10 +105,4 @@ plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 1)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
 plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=110, height=33, units='mm')
-
-# Select the amplicons with dropout rate < 0.9 in the uncut experiment
-selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
-selected_amplicons <- ampli_info[selected_amplicons, ]                          
-write.table(selected_amplicons, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
-  uncut, '/tsv/selected_amplicons.tsv'))
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected_merged.pdf'), plot, width=110, height=33, units='mm')

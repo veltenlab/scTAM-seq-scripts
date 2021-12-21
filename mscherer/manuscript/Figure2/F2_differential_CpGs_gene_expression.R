@@ -22,7 +22,7 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     legend.key=element_rect(color=NA, fill=NA),
                     legend.position='none')
 
-sel.cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2avsCluster2b.csv')
+sel.cpgs <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2bvsCluster2a.csv')
 sel.cpgs <- cpgs[sel.cpgs$CpGID]
 
 closest.genes <- c()

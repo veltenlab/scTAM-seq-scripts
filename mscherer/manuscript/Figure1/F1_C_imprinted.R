@@ -4,17 +4,17 @@
 #' is better than a linear fit.
 #' 
 library(ggplot2)
-cut <- 'BCells_Sample7_70_percent_good_performance'
-uncut <- 'BCells_Sample6_70_percent_good_performance'
-plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+cut <- 'Sample8_70_percent_good_performance'
+uncut <- 'Sample6_70_percent_good_performance'
+plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample8/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=10),
-                    axis.text=element_text(color='black',size=8),
-                    axis.ticks=element_line(color='black'),
+                    text=element_text(color='black',size=6),
+                    axis.text=element_text(color='black',size=5),
+                    axis.ticks=element_line(color='black', size=.25),
                     strip.background = element_blank(),
                     strip.text.x = element_blank(),
-                    legend.key=element_rect(color='black', fill=NA),
+                    legend.key=element_rect(color=NA, fill=NA),
                     legend.position='none')
 colors_amplicons <- c("Mutation only"="#e5c494",
                       "Differential CpG Bcells"="#fc8d62",
@@ -25,17 +25,18 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/", cut, "/tsv/", cut, ".barcode.cell.distribution_with_MCL.tsv"), 
+dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-rowinfo <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/rowinfo_reclustering_doublet.csv',
+rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/rowinfo.csv'),
                     row.names = 1)
 dat_cut <- dat_cut[row.names(rowinfo), ]
-dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                         sep="\t", 
                         header=T)
-doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample6_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
-doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
+doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
+                           uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
+doublets <- c(doublet$Barcode[which(doublet$DoubletDetectionLabel==1)])
 dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
 ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 sel_amplis <- row.names(ampli_info)[grepl('CpG.imprinted', ampli_info$Type.of.amplicon)]
@@ -59,7 +60,7 @@ plot <- ggplot(to_plot, aes(x=Uncut, y=Cut))+
   xlim(0,1)+ylim(0,1)+
   annotate(x=0.3, y=0.75, geom = 'text', label=paste("ANOVA p-value sqrt- vs. linear fit: ", format(anov_p, digits = 3)))+
   plot_theme
-ggsave(file.path(plot.path, 'F1_C_imprinted_original.pdf'), plot, width=100, height=68, units='mm')
+ggsave(file.path(plot.path, 'F1_C_imprinted_original.pdf'), plot, width=65, height=45, units='mm')
 
 square_fit <- lm(Cut~0+Uncut+I(sqrt(Uncut)), data=to_plot)
 linear_fit <- lm(Cut~0+Uncut, data=to_plot)
@@ -77,7 +78,7 @@ plot <- ggplot()+
   geom_abline(slope=1, intercept=0)+
   labs(x='Fraction of cells with reads undigested sample', y='Fraction of cells with reads digested sample', col='Amplicon Type')+
   xlim(0,1)+ylim(0,1)+
-  annotate(x=0.45, y=1.0, geom = 'text', label=paste("ANOVA p-value sqrt- vs. linear fit: ", format(anov_p, digits = 3)), size=2.8)+
+  annotate(x=0.45, y=1.0, geom = 'text', label=paste("ANOVA p-value sqrt- vs. linear fit: ", format(anov_p, digits = 3)), size=2)+
   scale_color_manual(values=c('Observed'=unname(colors_amplicons['Imprinted CpG']), 'Sqrt'='black'))+
   plot_theme
-ggsave(file.path(plot.path, 'F1_C_imprinted.pdf'), plot, width=100, height=68, units='mm')
+ggsave(file.path(plot.path, 'F1_C_imprinted.pdf'), plot, width=65, height=45, units='mm')

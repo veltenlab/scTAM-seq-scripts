@@ -26,7 +26,7 @@ echo "$(date): Start MissionBio Tapestri Pipeline"
 #adapter_sequence_g="TATAAGAGACAG"
 ref_genome="/users/lvelten/project/Methylome/references/MissionBio/hg19/ucsc_hg19.fa"
 panel_bed="/users/lvelten/project/Methylome/infos/BCells/panel.bed"
-ampli_file="/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.tsv"
+ampli_file="/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv"
 cellfinder_cutoff=0.7
 tmp_folder=${output}/tmp
 mkdir $tmp_folder
@@ -107,6 +107,18 @@ out_file=${output}/bam/${name}.cells.bam
 samtools view -@ $cores -b -R $in_file ${output}/bam/${name}_aligned_fixed.bam > $out_file
 samtools index $out_file
 python3 -m missionbio.dna.calculate_reads_mapped_to_cells --tsv ${output}/tsv/${name}.barcode.cell.distribution.tsv > ${output}/tsv/read_to_cells.txt
+
+# Run DoubletDetection
+echo "###################################################################################################"
+echo "$(date): Running DoubletDetection"
+in_doublet=${output}/tsv/${name}.barcode.cell.distribution.tsv
+out_doublet=${output}/tsv/doublet_scores_DoubletDetection.csv
+python3 /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/DoubletDetection.py --input $in_doublet --output $out_doublet
+
+# DONE!
+echo "###################################################################################################"
+echo "$(date): Finished PART I"
+
 
 # DONE!
 echo "###################################################################################################"
