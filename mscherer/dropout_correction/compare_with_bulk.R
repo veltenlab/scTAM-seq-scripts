@@ -34,7 +34,7 @@ non_cut <- non_cut[non_cut_doublets[which(non_cut_doublets$DoubletDetectionLabel
 allelic_dropout <- apply(non_cut[, sel.amplicons], 2, function(x){
   sum(x==0)/length(x)
 })
-sel.amplicons <- sel.amplicons[allelic_dropout<=0.1]
+sel.amplicons <- sel.amplicons[allelic_dropout>0.1]
 allelic_dropout <- allelic_dropout[sel.amplicons]
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), sel.amplicons]>0, 1, 0)
