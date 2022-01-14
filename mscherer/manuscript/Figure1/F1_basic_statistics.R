@@ -64,7 +64,7 @@ to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
                              rep('Dropout', length(dropout))),
                      Value=c(fpr, fnr, dropout))
 plot <- ggplot(to_plot, aes(x=Type, y=Value))+geom_boxplot(color='black', fill='gray80', size=.25, outlier.size=.25)+plot_theme
-ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/F1_basic_statistics.pdf', 
+ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample8/F1_basic_statistics.pdf', 
        plot,
        width=35,
        height=20,

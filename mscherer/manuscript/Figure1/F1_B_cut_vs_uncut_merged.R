@@ -41,10 +41,13 @@ dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis
 #doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/old/Figure1/reclustering_doublet_names.csv')
 #double2 <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
 #doublets <- c(doublet$x, double2$Barcode[double2$DoubletDetectionLabel==1])
-doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
-  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
-doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
-dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
+#doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
+#  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
+#doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
+rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
+                           cut, '/tsv/rowinfo.csv'),
+                    row.names = 1)
+dat_cut <- dat_cut[row.names(rowinfo), ]
 dat_s7 <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", s7, "/tsv/", s7, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
@@ -56,7 +59,7 @@ colliding.barcodes <- plyr::count(c(row.names(dat_cut), row.names(dat_s7)))
 colliding.barcodes <- colliding.barcodes[colliding.barcodes$freq>1, 'x']
 dat_cut <- dat_cut[-(which(row.names(dat_cut)%in%colliding.barcodes)), ]
 dat_s7 <- dat_s7[-(which(row.names(dat_s7)%in%colliding.barcodes)), ]
-dat_cut <- as.data.frame(rbind(dat_cut, dat_s7))
+#dat_cut <- as.data.frame(rbind(dat_cut, dat_s7))
 dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/",
                                uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
@@ -91,7 +94,7 @@ plot_theme <- plot_theme+theme(axis.text.x=element_text(angle=90, hjust=1, vjust
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~.)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+  plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all_merged.pdf'), plot, width=175, height=100, units='mm')
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all.pdf'), plot, width=175, height=100, units='mm')
 to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
                                      "Differential CpG Bcells",
                                      "Always unmethylated CpG in Bcells",
@@ -105,4 +108,4 @@ plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 1)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
 plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected_merged.pdf'), plot, width=110, height=33, units='mm')
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=110, height=33, units='mm')

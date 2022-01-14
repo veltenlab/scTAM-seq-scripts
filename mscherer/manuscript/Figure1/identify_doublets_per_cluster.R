@@ -20,6 +20,11 @@ uncut <- 'Sample6_70_percent_good_performance'
 
 rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/rowinfo.csv'),
                   row.names = 1)
+#rowinfo <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/rowinfo.tsv'),
+#                    row.names = 1)
+#rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv//doublet_scores_DoubletDetection.csv'),
+#                                      row.names = 2)
+#rowinfo <- rowinfo[which(rowinfo$DoubletDetectionLabel==0), ]
 selected_amplicons <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
                                         uncut, '/tsv/selected_amplicons.tsv'),
                                  row.names = 1)
@@ -32,7 +37,7 @@ selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_a
 
 ph <- pheatmap(selected_data, 
         #       annotation_col = subset(fpr, select = c("Bulk")),
-               annotation_row = subset(rowinfo, select = c("CellType", "Nfeatures")), 
+               annotation_row = subset(rowinfo, select = c("DoubletDetectionLabel")), 
                clustering_distance_cols = "binary", 
                clustering_distance_rows = "binary", 
                show_rownames = F, 

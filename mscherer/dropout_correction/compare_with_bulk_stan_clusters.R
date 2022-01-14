@@ -31,7 +31,7 @@ non_cut <- non_cut[non_cut_doublets[which(non_cut_doublets$DoubletDetectionLabel
 allelic_dropout <- apply(non_cut[, sel.amplicons], 2, function(x){
   sum(x==0)/length(x)
 })
-sel.amplicons <- sel.amplicons[allelic_dropout>0.05&allelic_dropout<0.25]
+sel.amplicons <- sel.amplicons[allelic_dropout>=0.25]
 allelic_dropout <- allelic_dropout[sel.amplicons]
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), sel.amplicons]>0, 1, 0)
@@ -51,11 +51,11 @@ vals_c2b <- apply(selected[cell_metadata$Cluster%in%'Cluster2b', ], 2, function(
     sum(ampli>0),
     sum(ampli>0)/length(ampli))
 })
-vals_c2c <- apply(selected[cell_metadata$Cluster%in%'Cluster2c', ], 2, function(ampli){
-  c(sum(ampli==0),
-    sum(ampli>0),
-    sum(ampli>0)/length(ampli))
-})
+# vals_c2c <- apply(selected[cell_metadata$Cluster%in%'Cluster2c', ], 2, function(ampli){
+#   c(sum(ampli==0),
+#     sum(ampli>0),
+#     sum(ampli>0)/length(ampli))
+# })
 corrected_values <- sapply(sel.amplicons, function(ampli){
   data_c1 <- list(n0=vals_c1[1, ampli], n1=vals_c1[2, ampli], p=allelic_dropout[ampli])
   sm_c1 <- stan("basic.stan", data = data_c1)
@@ -63,10 +63,10 @@ corrected_values <- sapply(sel.amplicons, function(ampli){
   sm_c2a <- stan("basic.stan", data = data_c2a)
   data_c2b <- list(n0=vals_c2b[1, ampli], n1=vals_c2b[2, ampli], p=allelic_dropout[ampli])
   sm_c2b <- stan("basic.stan", data = data_c2b)
-  data_c2c <- list(n0=vals_c2c[1, ampli], n1=vals_c2c[2, ampli], p=allelic_dropout[ampli])
-  sm_c2c <- stan("basic.stan", data = data_c2c)
+#  data_c2c <- list(n0=vals_c2c[1, ampli], n1=vals_c2c[2, ampli], p=allelic_dropout[ampli])
+#  sm_c2c <- stan("basic.stan", data = data_c2c)
   c(Cluster1=get_posterior_mean(sm_c1)['m', 'mean-all chains'],
     Cluster2a=get_posterior_mean(sm_c2a)['m', 'mean-all chains'],
-    Cluster2b=get_posterior_mean(sm_c2b)['m', 'mean-all chains'],
-    Cluster2c=get_posterior_mean(sm_c2c)['m', 'mean-all chains'])
+    Cluster2b=get_posterior_mean(sm_c2b)['m', 'mean-all chains'])#,
+#    Cluster2c=get_posterior_mean(sm_c2c)['m', 'mean-all chains'])
 })

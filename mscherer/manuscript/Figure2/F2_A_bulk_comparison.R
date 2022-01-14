@@ -5,7 +5,7 @@
 
 
 library(ggplot2)
-plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/'
+plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample8/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -17,7 +17,7 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
                legend.position='none')
 
-means_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/clusters/all_amplicons_clusters.csv', row.names=1)
+means_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/Sample8/clusters/all_amplicons_clusters_reduced.csv', row.names=1)
 more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
 row.names(more_info) <- more_info$amplicon
 joint_names <- intersect(row.names(more_info), row.names(means_clusters))
@@ -50,8 +50,8 @@ to_plot$Correlation <- cors[,1]
 to_plot$CorrelationPVal <- cors[,2]
 color_map <- c('Cluster1'='#fcbd7e',
                'Cluster2a'='#fc3262',
-               'Cluster2b'='#bd0071',
-               'Cluster2c'='#8e008e')
+#               'Cluster2b'='#bd0071',
+               'Cluster2b'='#8e008e')
 plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='Cluster'))+geom_point(size=.5)+geom_smooth(method='lm',se=FALSE)+xlim(0, 1)+ylim(0,1)+
   facet_wrap(Cluster~Bulk, nrow=4)+
   geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), x=0.3, y=0.9, check_overlap=TRUE, color='black', size=2.5)+

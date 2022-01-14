@@ -51,9 +51,10 @@ load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/me
 
 #bcell_clusters <- unlist(p.vals['Cluster2b','Cluster2a&c'])
 #bcell_clusters <- sort(bcell_clusters)[1:20]
-bcell_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential/differential_CpGs_Cluster2avsCluster2b.csv')
-bcell_clusters <- as.character(bcell_clusters$Amplicon)
-names(bcell_clusters) <- bcell_clusters
+bcell_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/differential_CpGs_bulk.csv')
+n.ames <- as.character(bcell_clusters$Amplicon)
+bcell_clusters <- as.numeric(bcell_clusters$MeanDiff)
+names(bcell_clusters) <- n.ames
 bcell_clusters <- sort(bcell_clusters, decreasing = TRUE)[1:20]
 cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/clusters/all_amplicons_clusters.csv', row.names=1)
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
