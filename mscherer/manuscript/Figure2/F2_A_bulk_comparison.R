@@ -5,7 +5,7 @@
 
 
 library(ggplot2)
-plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample8/'
+plot_path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample8/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -17,15 +17,15 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
                legend.position='none')
 
-means_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/Sample8/clusters/all_amplicons_clusters_reduced.csv', row.names=1)
-more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
+means_clusters <- read.csv('/users/lvelten/project/Methylome/analysis/dropou_modeling/re_clustering/Sample8/clusters/all_amplicons_clusters_batch_corrected.csv', row.names=1)
+more_info <- read.table('/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
 row.names(more_info) <- more_info$amplicon
 joint_names <- intersect(row.names(more_info), row.names(means_clusters))
 means_clusters <- means_clusters[joint_names, ]
 row.names(means_clusters) <- more_info[row.names(means_clusters), 'background.cpgs']
 
-load('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/meth.data.numeric.Rdata')
-cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
+load('/users/lvelten/project/Methylome/data/external/BLUEPRINT/Renee/meth.data.numeric.Rdata')
+cell_assignment <- read.table('/users/lvelten/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
 means_csMBC <- apply(meth.data.numeric[row.names(means_clusters), cell_assignment$V2=='csMBC'], 1, mean)
 means_ncsMBC <- apply(meth.data.numeric[row.names(means_clusters), cell_assignment$V2=='ncsMBC'], 1, mean)
@@ -39,6 +39,7 @@ theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
                text=element_text(color='black',size=15))
 to_plot$BulkMethylation <- as.numeric(to_plot$BulkMethylation)
+to_plot <- na.omit(to_plot)
 cors <- t(as.data.frame(apply(to_plot, 1, function(x){
   ct_sc <- x['Cluster']
   ct_bulk <- x['Bulk']
@@ -83,8 +84,8 @@ to_plot$Correlation <- cors[,1]
 to_plot$CorrelationPVal <- cors[,2]
 to_plot$BulkMethylation <- as.numeric(to_plot$BulkMethylation)
 to_plot$Type <- 'BCellDifferentiation'
-imprinted_bulk <- read.csv('/users/mscherer/cluster/project/Methylome/infos/BCells/imprinted_amplicons_bulk.csv', row.names=1)
-imprinted_clusters <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/corrected_stan_clusters_imprinted.csv', row.names=1)
+imprinted_bulk <- read.csv('/users/lvelten/project/Methylome/infos/BCells/imprinted_amplicons_bulk.csv', row.names=1)
+imprinted_clusters <- read.csv('/users/lvelten/project/Methylome/analysis/dropou_modeling/corrected_stan_clusters_imprinted.csv', row.names=1)
 joint_names <- intersect(row.names(imprinted_bulk), colnames(imprinted_clusters))
 imprinted_bulk <- imprinted_bulk[joint_names, ]
 imprinted_clusters <- imprinted_clusters[, joint_names]

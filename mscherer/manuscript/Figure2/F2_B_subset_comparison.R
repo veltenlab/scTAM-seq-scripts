@@ -4,8 +4,8 @@
 #' 
 library(ggplot2)
 library(pheatmap)
-plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/'
-cut <- 'Sample7_70_percent_good_performance'
+plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample8/'
+cut <- 'Sample8_70_percent_good_performance'
 uncut <- 'Sample6_70_percent_good_performance'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
@@ -56,7 +56,7 @@ n.ames <- as.character(bcell_clusters$Amplicon)
 bcell_clusters <- as.numeric(bcell_clusters$MeanDiff)
 names(bcell_clusters) <- n.ames
 bcell_clusters <- sort(bcell_clusters, decreasing = TRUE)[1:20]
-cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/clusters/all_amplicons_clusters.csv', row.names=1)
+cluster_meth <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/dropou_modeling/re_clustering/Sample8/clusters/all_amplicons_clusters_batch_corrected.csv', row.names=1)
 cell_assignment <- read.table('/users/mscherer/cluster/project/Methylome/data/external/BLUEPRINT/Renee/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
 more_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')

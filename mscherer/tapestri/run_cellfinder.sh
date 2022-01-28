@@ -8,13 +8,13 @@
 echo "###################################################################################################"
 echo "$(date): Running our version of CellFinder"
 source /software/as/el7.2/anaconda3/bin/activate /users/lvelten/mscherer/conda/envs/rnbeads
-in_file=/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/Sample8_70_percent_good_performance/Sample8_70_percent_good_performance.cellfinder.barcode.distribution.txt
-out_file=/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/Sample8_80_percent/
+in_file=/users/lvelten/project/Methylome/analysis/missionbio/BM/Sample12_70_percent_good_performance/Sample12_70_percent_good_performance.cellfinder.barcode.distribution.txt
+out_file=/users/lvelten/project/Methylome/analysis/missionbio/BM/Sample12_70_percent/
 mkdir $out_file
-out_file=/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/Sample8_80_percent/tsv/
+out_file=/users/lvelten/project/Methylome/analysis/missionbio/BM/Sample12_70_percent/tsv/
 mkdir $out_file
-out_file=${out_file}/Sample8_80_percent.barcode.cell.distribution.tsv
+out_file=${out_file}/Sample12_70_percent.barcode.cell.distribution.tsv
 ampli_file="/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv"
-cellfinder_cutoff=0.8
-Rscript /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/cellfinder_BCells_selected.R -f $in_file -a $ampli_file -c $cellfinder_cutoff -o $out_file
+cellfinder_cutoff=0.7
+Rscript /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/cellfinder_BCells.R -f $in_file -a $ampli_file -c $cellfinder_cutoff -o $out_file
 
