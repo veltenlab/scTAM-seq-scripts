@@ -2,7 +2,8 @@ library(ggplot2)
 library(rstan)
 plot_path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample8/correction/clusters/'
 cut <- 'Sample8_70_percent_good_performance'
-uncut <- 'Sample12_70_percent_good_performance'
+s7_path <- 'Sample7_70_percent_good_performance'
+uncut <- 'Sample6_70_percent_good_performance'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=15),
@@ -16,22 +17,36 @@ filtered.counts <- read.table(paste0("/users/lvelten/project/Methylome/analysis/
                               header=T)
 cell_metadata <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/', cut, '/tsv/rowinfo.csv'),
                           row.names = 1)
-cell_metadata <- cell_metadata[]
 all.amplicons <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 # Only using the best-performing amplicons
 #sel.amplicons <- row.names(amplicon.info)
 # Using all amplicons
 sel.amplicons <- row.names(all.amplicons[grepl('CpG.B.cell.diff', all.amplicons$Type.of.amplicon),])
-non_cut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+non_cut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-non_cut_doublets <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', 
+non_cut_doublets <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/', 
                                     uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
 non_cut <- non_cut[non_cut_doublets[which(non_cut_doublets$DoubletDetectionLabel==0), 'Barcode'], ]
 allelic_dropout <- apply(non_cut[, sel.amplicons], 2, function(x){
   sum(x==0)/length(x)
 })
-sel.amplicons <- sel.amplicons[allelic_dropout<0.25&allelic_dropout>0.05]
+s7 <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/", s7_path, "/tsv/", s7_path, ".barcode.cell.distribution.tsv"), 
+                      sep="\t", 
+                      header=T)
+s7_doublets <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/', 
+                               s7_path, '/tsv/all_doublets.csv'))
+s7 <- s7[s7_doublets[which(s7_doublets$DoubletDetectionLabel==0), 'X.1'], ]
+drop_s8 <- apply(filtered.counts[row.names(cell_metadata), sel.amplicons], 2, function(x){
+  sum(x==0)/length(x)
+})
+drop_s7 <- apply(s7[, sel.amplicons], 2, function(x){
+  sum(x==0)/length(x)
+})
+frac_s8_s7 <- drop_s8/drop_s7
+allelic_dropout <- allelic_dropout*frac_s8_s7
+
+sel.amplicons <- sel.amplicons[allelic_dropout<0.05]
 allelic_dropout <- allelic_dropout[sel.amplicons]
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), sel.amplicons]>0, 1, 0)

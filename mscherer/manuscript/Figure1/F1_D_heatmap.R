@@ -15,7 +15,7 @@ color_map <- list(CellType_broad=c('naive B-cells'='#fcbd7e',
                           'Memory B-cell high'='#fc00bd'),
                   CellType=c('naive B-cells'='#fcbd7e',
                              'ns-memory B-cells'='#fc3262',
-                             'cs-memory B-cells'='#fc3262'))
+                             'cs-memory B-cells'='#8e008e'))
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -52,8 +52,8 @@ colinfo$Class <- ifelse(colinfo$NBC.mean>colinfo$MBC.mean, 'Naive B-cell high', 
 selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_amplicons)]>0, 1, 0)
 #selected_data <- ifelse(filtered.counts[, row.names(selected_amplicons)]>0, 1, 0)
 #selected_data <- ifelse(filtered.counts[row.names(rowinfo), ]>0, 1, 0)
-selected_data <- selected_data[which(rowinfo$Doublet==0), ]
-rowinfo <- rowinfo[which(rowinfo$Doublet==0), ]
+#selected_data <- selected_data[which(rowinfo$Doublet==0), ]
+#rowinfo <- rowinfo[which(rowinfo$Doublet==0), ]
 #' re_clustering <- cutree(hclust(dist(selected_data, 'binary'), method='ward.D2'), 3)
 #' clust_ass <- c('1'='Cluster2a',
 #'                '2'='Cluster1',
@@ -89,16 +89,16 @@ rowinfo <- rowinfo[which(rowinfo$Doublet==0), ]
 #                                                                         paste0(unique(x[, 'ab_description']), '-')
 #   )
 # }
-png(file.path(plot_path, 'heatmap_complete_full.png'),
+png(file.path(plot_path, 'heatmap_complete.png'),
     width=1000,
     height=1600)
 ph <- pheatmap(selected_data, 
                annotation_col = subset(colinfo, select = c("NBC.mean",
                                                            "MBC.mean")),
                annotation_row = subset(rowinfo, select = c("CellType",
-                                                           "Nfeatures",
+                                                           "Nfeatures")),
                                                            #"CD10",
-                                                           "CD27")),
+                                                           #"CD27")),
                                                            #"CD19", 
                                                            #"CD34",
                                                            #"CD45RA")), 
@@ -106,7 +106,7 @@ ph <- pheatmap(selected_data,
                clustering_distance_rows = "binary", 
                show_rownames = F, 
                show_colnames = F, 
-               cutree_rows = 2, 
+               cutree_rows = 3, 
                clustering_method = "ward.D2",
                color=rev(inferno(50)),
                annotation_colors = color_map,

@@ -3,9 +3,9 @@
 #' sample. Dropout is defined as those cells having 0 reads at this particular amplicon
 
 library(ggplot2)
-cut <- 'Sample7_70_percent_good_performance'
-uncut <- 'Sample6_70_percent_good_performance'
-plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+cut <- 'Sample11_70_percent_good_performance'
+uncut <- 'Sample12_70_percent_good_performance'
+plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
                text=element_text(color='black',size=6),
@@ -34,25 +34,21 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
+dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
                   sep="\t", 
                   header=T)
 #doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/old/Figure1/reclustering_doublet_names.csv')
 #double2 <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
 #doublets <- c(doublet$x, double2$Barcode[double2$DoubletDetectionLabel==1])
-#doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
-#  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
-#doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
-#dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
-rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
-                           cut, '/tsv/rowinfo.csv'),
-                    row.names=1)
-dat_cut <- dat_cut[row.names(rowinfo), ]
-dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/",
+doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/' ,
+  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
+doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
+dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
+dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/",
                                uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
+doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
   uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
 doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
 dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
@@ -85,10 +81,10 @@ for(i in 1:nrow(to_plot)){
   cors <- c(cors, cori)
 }
 to_plot$Correlation <- cors
+
 plot_theme <- plot_theme+theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~.)+
-  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), y=1, x=0.25, geom='text', check_overlap=TRUE, color='black', size=2.5)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+  plot_theme+scale_color_manual(values=colors_amplicons)
 ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all.pdf'), plot, width=175, height=100, units='mm')
 to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
@@ -101,14 +97,13 @@ to_plot$Type <- factor(to_plot$Type, levels=c("No HhaI cutsite",
                                               "Always unmethylated CpG in Bcells", 
                                               "Differential CpG Bcells"))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
-  geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 2)+
-  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), y=.95, x=0.4, geom='text', check_overlap=TRUE, color='black', size=2)+
+  geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 1)+
+  geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), y=.95, x=0.2, geom='text', check_overlap=TRUE, color='black', size=2, fontface='bold')+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
-plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=60, height=60, units='mm')
+  plot_theme+scale_color_manual(values=colors_amplicons)
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, height=40, units='mm')
 
-# Select the amplicons with dropout rate < 0.9 in the uncut experiment
-selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
-selected_amplicons <- ampli_info[selected_amplicons, ]                          
-write.table(selected_amplicons, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
-  uncut, '/tsv/selected_amplicons.tsv'))
+# selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
+# selected_amplicons <- ampli_info[selected_amplicons, ]                          
+# write.table(selected_amplicons, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
+#                                        uncut, '/tsv/selected_amplicons.tsv'))
