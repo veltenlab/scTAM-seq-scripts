@@ -6,3 +6,9 @@ wget https://dl.missionbio.io/onprem-miniconda/TapestriPipeline-v2.0.1-Linux-x86
 ```
 
 And install the pipeline using the installation script. You will have to add some parts of the path, where the program has been installed to specific steps of the bash pipelines (variable $TAPESTRI).
+
+```
+sh TapestriPipeline-v2.0.1-Linux-x86_64.sh $TAPESTRI
+```
+
+The script will automatically generate a conda environment, which will be used in the bash pipeline scripts.
