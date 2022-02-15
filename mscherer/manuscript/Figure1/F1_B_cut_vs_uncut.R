@@ -3,9 +3,9 @@
 #' sample. Dropout is defined as those cells having 0 reads at this particular amplicon
 
 library(ggplot2)
-cut <- 'Sample7_70_percent_good_performance'
-uncut <- 'Sample6_70_percent_good_performance'
-plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/'
+cut <- 'Sample11_70_percent_good_performance'
+uncut <- 'Sample12_70_percent_good_performance'
+plot.path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
                text=element_text(color='black',size=6),
@@ -34,29 +34,29 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
+dat_cut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
                   sep="\t", 
                   header=T)
-#doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/old/Figure1/reclustering_doublet_names.csv')
-#double2 <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
+#doublet <- read.csv('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/old/Figure1/reclustering_doublet_names.csv')
+#double2 <- read.csv('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
 #doublets <- c(doublet$x, double2$Barcode[double2$DoubletDetectionLabel==1])
-#doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
+#doublets <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/' ,
 #  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
 #doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
 #dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
-rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/' ,
+rowinfo <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/' ,
                            cut, '/tsv/rowinfo.csv'),
                     row.names=1)
 dat_cut <- dat_cut[row.names(rowinfo), ]
-dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/",
+dat_uncut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/",
                                uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
+doublet <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', 
   uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
 doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
 dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
-ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+ampli_info <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 in_all <- intersect(colnames(dat_cut), intersect(colnames(dat_uncut), row.names(ampli_info)))
 dropout_cut <- apply(dat_cut[, in_all], 2, function(x){
   1-(sum(x==0)/length(x))
@@ -71,7 +71,7 @@ type_clear <- c("mut.only"="Mutation only",
                 "CpG.MCL"="MCL-specific CpG",
                 "CpG.MCL.multiple.cutsites"="MCL-specific CpG",
                 "CpG.always.unmeth.B"="Always unmethylated CpG in Bcells",
-                "CpG.B.cell.diff.and.MCL"="Differential CpG Bcells AND MCL-specific CpG",        
+                "CpG.B.cell.diff.and.MCL"="Differential CpG Bcells",        
                 "CpG.always.meth.B"="Always methylated CpG in Bcells",
                 "CpG.imprinted.multiple.cutsites"="Imprinted CpG multiple",
                 "CpG.imprinted"="Imprinted CpG")
@@ -110,5 +110,5 @@ ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=60, h
 # Select the amplicons with dropout rate < 0.9 in the uncut experiment
 selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
 selected_amplicons <- ampli_info[selected_amplicons, ]                          
-write.table(selected_amplicons, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', 
+write.table(selected_amplicons, paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/', 
   uncut, '/tsv/selected_amplicons.tsv'))

@@ -40,18 +40,18 @@ dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis
 #doublet <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/old/Figure1/reclustering_doublet_names.csv')
 #double2 <- read.csv('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
 #doublets <- c(doublet$x, double2$Barcode[double2$DoubletDetectionLabel==1])
-doublets <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/' ,
-  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
-doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
-dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
+rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/' ,
+  cut, '/tsv/rowinfo.csv'), row.names=1)
+non_doublets <- row.names(rowinfo)[which(rowinfo$DoubletDetectionLabel==0)]
+dat_cut <- dat_cut[non_doublets, ]
 dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/",
                                uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
 doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
   uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
-doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
-dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
+non_doublets <- doublet$Barcode[which(doublet$DoubletDetectionLabel==0)]
+dat_uncut <- dat_uncut[non_doublets, ]
 ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 in_all <- intersect(colnames(dat_cut), intersect(colnames(dat_uncut), row.names(ampli_info)))
 dropout_cut <- apply(dat_cut[, in_all], 2, function(x){

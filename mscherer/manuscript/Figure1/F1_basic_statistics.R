@@ -5,7 +5,7 @@
 library(ggplot2)
 cut <- 'Sample11_70_percent_good_performance'
 uncut <- 'Sample12_70_percent_good_performance'
-plot.path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/'
+plot.path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -34,36 +34,42 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
+dat_cut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', cut, '/tsv/rowinfo.csv'),
+rowinfo <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', cut, '/tsv/rowinfo.csv'),
                     row.names = 1)
-dat_uncut <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+dat_uncut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/", uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                         sep="\t", 
                         header=T)
-rowinfo_uncut <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', uncut, '/tsv/doublet_scores_DoubletDetection.csv'),
+rowinfo_uncut <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', uncut, '/tsv/doublet_scores_DoubletDetection.csv'),
                     row.names = 2)
 
-doublet <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
+doublet <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', 
                            uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
 doublets <- c(doublet$Barcode[which(doublet$DoubletDetectionLabel==1)])
 dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
-ampli_info <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
-selected_amplicons <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
+ampli_info <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+selected_amplicons <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', 
                                       uncut, '/tsv/selected_amplicons.tsv'),
                                row.names = 1)
 in_all <- intersect(colnames(dat_cut), intersect(colnames(dat_uncut), row.names(ampli_info)))
 ampli_info <- ampli_info[][in_all, ]
 
-fpr <- ifelse(dat_cut[row.names(rowinfo), ampli_info$Type.of.amplicon%in%"CpG.always.unmeth.B"]>0, 1, 0)
-fpr <- colMeans(fpr)
-fnr <- ifelse(dat_uncut[row.names(rowinfo_uncut[which(rowinfo_uncut$DoubletDetectionLabel==0), ]), ampli_info$Type.of.amplicon%in%"CpG.B.cell.diff"]>0, 0, 1)
+fpr <- apply(dat_cut[row.names(rowinfo), row.names(ampli_info)[grepl("CpG.always.unmeth.B", ampli_info$Type.of.amplicon)]], 2, function(x){
+  sum(x>0)/length(x)
+})
+fnr <- apply(dat_uncut[row.names(rowinfo_uncut[which(rowinfo_uncut$DoubletDetectionLabel==0), ]), row.names(ampli_info)[grepl("CpG.B.cell.diff", ampli_info$Type.of.amplicon)]], 2, function(x){
+  sum(x==0)/length(x)
+})
+#fpr <- ifelse(dat_cut[row.names(rowinfo), ampli_info$Type.of.amplicon%in%"CpG.always.unmeth.B"]>0, 1, 0)
+#fpr <- colMeans(fpr)
+#fnr <- ifelse(dat_uncut[row.names(rowinfo_uncut[which(rowinfo_uncut$DoubletDetectionLabel==0), ]), row.names(ampli_info)[ampli_info$Type.of.amplicon%in%"CpG.B.cell.diff"]]>0, 0, 1)
 # fnr <- ifelse(dat_uncut[row.names(rowinfo_uncut[which(rowinfo_uncut$DoubletDetectionLabel==0), ]), ampli_info$Type.of.amplicon%in%c("CpG.B.cell.diff",
 #                                                                                                                                     "NonHhaI",
 #                                                                                                                                     "CpG.always.unmeth.B",
 #                                                                                                                                     "CpG.always.meth.B")]>0, 0, 1)
-fnr <- colMeans(fnr)
+#fnr <- colMeans(fnr)
 #dropout <- ifelse(dat_cut[row.names(rowinfo), ampli_info$Type.of.amplicon%in%"NonHhaI"]>0, 0, 1)
 #dropout <- colMeans(dropout)
 to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
@@ -71,7 +77,7 @@ to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
                      Value=c(fpr, fnr))
 plot <- ggplot(to_plot, aes(x=Type, y=Value))+geom_boxplot(color='black', fill='gray80', size=.25, outlier.size=.25)+plot_theme+
   xlab('')+ylab('')
-ggsave('/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/F1_basic_statistics.pdf', 
+ggsave('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/F1_basic_statistics.pdf', 
        plot,
        width=40,
        height=40,
