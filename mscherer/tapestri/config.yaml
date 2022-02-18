@@ -1,0 +1,23 @@
+genome:
+    path: REFGENOME
+    version: hg19
+inputs:
+    tube1:
+        r1: ["SAMPLE_read1.fastq.gz"]
+        r2: ["SAMPLE_read2.fastq.gz"]
+output:
+    prefix: vanilla
+panel:
+    name: CellLines
+    path: .
+gatk:
+  GenotypeGVCFs:
+    standard-min-confidence-threshold-for-calling: 0
+  HaplotypeCaller:
+    base-quality-score-threshold: 10
+    min-pruning: 2
+    sample-ploidy: 2
+  common:
+    heterozygosity: 0.001
+    max-alternate-alleles: 2
+

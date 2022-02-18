@@ -24,15 +24,18 @@ echo "$(date): Start MissionBio Tapestri Pipeline"
 # Variables
 #adapter_sequence_a="CTGTCTCTTATA"
 #adapter_sequence_g="TATAAGAGACAG"
-ref_genome="/users/lvelten/project/Methylome/references/MissionBio/hg19/ucsc_hg19.fa"
-panel_bed="/users/lvelten/project/Methylome/infos/cell_lines/TapestriDesigner/1898.bed"
-ampli_file="/users/lvelten/project/Methylome/infos/amplicon_info/200804_Design_Mission_Bio_sites_Jurkat_K562.tsv"
+#To be downloaded from https://dl.dev.missionbio.com/pipeline-on-prem/ref/​hg19-ref-dna-2.0.1.tar.gz
+ref_genome="ucsc_hg19.fa"
+#The output of the MissionBio Tapestri Designer
+panel_bed="panel.bed"
+ampli_file="200804_Design_Mission_Bio_sites_Jurkat_K562.tsv"
+# This is the cellfinder cutoff for the number of amplicons a particular cell has to have reads
 cellfinder_cutoff=0.7
 tmp_folder=${output}/tmp
 mkdir $tmp_folder
 
 # Load conda env
-source /software/as/el7.2/anaconda3/bin/activate /users/lvelten/mscherer/conda/envs/tapestri
+source $CONDAPATH $TAPESTRI
 
 # PART 1:
 
@@ -83,22 +86,23 @@ out_file=${output}/${name}.cellfinder.barcode.distribution.txt
 minus_5=${tmp_folder}/${name}_panel_minus_5.bed
 awk '{print $1 "\t" ($2 + 5) "\t" ($3 - 5) "\t" $4}' $panel_bed > $minus_5
 samtools view -@ $cores $in_file | grep -oP 'RG:Z:\K.+?\b' | sort | uniq -c | sort -n -r | awk '{$1=$1}1' > $count_file
-perl /users/lvelten/mscherer/conda/envs/tapestri/bin/resources/Perl/distribution_barcodes_amplicon.pl --amplicon-input $minus_5 --bam-input $in_file --output-r1 $out_file --output-r2 ${output}/${name}.r2.barcode.distribution.txt
+perl ${TAPESTRI}/bin/resources/Perl/distribution_barcodes_amplicon.pl --amplicon-input $minus_5 --bam-input $in_file --output-r1 $out_file --output-r2 ${output}/${name}.r2.barcode.distribution.txt
 
 # Running the R-script resembling CellFinder (our version)
 echo "###################################################################################################"
 echo "$(date): Running our version of CellFinder"
-source /software/as/el7.2/anaconda3/bin/activate /users/lvelten/mscherer/conda/envs/rnbeads
+source $CONDAPATH $RNBEADS
 in_file=$out_file
 out_file=${output}/tsv/
 mkdir $out_file
 out_file=${out_file}/${name}.barcode.cell.distribution.tsv
-Rscript /users/lvelten/project/Methylome/src/MissionBio/cellfinder_BCells_selected.R -f $in_file -a $ampli_file -c $cellfinder_cutoff -o $out_file
+# This will compute determine the cells on the non-cut amplicons only for those amplicons that perform well
+Rscript cellfinder_BCells_selected.R -f $in_file -a $ampli_file -c $cellfinder_cutoff -o $out_file
 
 # Calculate reads per cell    
 echo "###################################################################################################"
 echo "$(date): Extracting the reads mapped to cells"
-source /software/as/el7.2/anaconda3/bin/activate /users/lvelten/mscherer/conda/envs/tapestri
+source  $CONDAPATH $TAPESTRI
 in_file=$out_file
 out_file=${tmp_folder}/cells.txt
 awk '{if (NR > 1) print $1}' $in_file > $out_file
@@ -113,7 +117,7 @@ echo "##########################################################################
 echo "$(date): Running DoubletDetection"
 in_doublet=${output}/tsv/${name}.barcode.cell.distribution.tsv
 out_doublet=${output}/tsv/doublet_scores_DoubletDetection.csv
-python3 /users/lvelten/project/Methylome/src/scTAM-seq-scripts/mscherer/tapestri/DoubletDetection.py --input $in_doublet --output $out_doublet
+python3 DoubletDetection.py --input $in_doublet --output $out_doublet
 
 # DONE!
 echo "###################################################################################################"
@@ -127,49 +131,7 @@ echo "$(date): Split bamfile by barcode"
 in_file=$out_file
 out_folder=${tmp_folder}/bam/
 mkdir $out_folder
-python3 /users/lvelten/mscherer/conda/envs/tapestri/lib/python3.6/site-packages/missionbio/dna/split_bam_by_barcode.py -i $in_file -o $out_folder -n $cores
-
-# Running GATK HaplotypeCaller
-echo "###################################################################################################"
-echo "$(date): Start the HaplotypeCaller"
-in_folder=$out_folder
-out_folder=${tmp_folder}/vcf/
-mkdir $out_folder
-python3 /users/lvelten/mscherer/conda/envs/tapestri/lib/python3.6/site-packages/missionbio/dna/gatk_haplotype_caller.py --input-dir $in_folder --output-dir $out_folder --config /users/lvelten/project/Methylome/src/MissionBio/config.yaml --prefix gatk
-
-# Combine VCF files using the Genomics import and then combination
-echo "###################################################################################################"
-echo "$(date): Combine the VCF files"
-in_folder=$out_folder
-variant_file=${tmp_folder}/variants.txt
-db_folder=${tmp_folder}/gendb/
-out_file=${output}/vcf/
-mkdir $out_file
-out_file=${out_file}/${name}.combined.vcf
-call_string=""
-for f in ${in_folder}/*.vcf.gz; do
-    call_string+=" --variant ${f}"
-done
-
-gatk_dir='/users/lvelten/mscherer/conda/envs/tapestri/bin/gatk'
-gatk GenomicsDBImport $call_string --genomicsdb-workspace-path $db_folder --intervals $panel_bed --merge-input-intervals --batch-size 150
-gatk GenotypeGVCFs --java-options -Xmx55g -R $ref_genome --heterozygosity 0.001 --max-alternate-alleles 2 -V gendb://${db_folder} -L $panel_bed --all-sites --include-non-variant-sites --genomicsdb-use-vcf-codec -O $out_file
-bgzip $out_file
-tabix ${out_file}.gz
-
-# PART II
-
-# Generate the h5 file for further exploration
-echo "###################################################################################################"
-echo "$(date): Generate the final h5 file"
-in_file=${out_file}.gz
-count_file=${output}/tsv/${name}.barcode.cell.distribution.tsv
-out_file=${output}/${name}.dna.h5
-tapestri h5 create dna \
---vcf $in_file \
---read-counts $count_file \
---metadata /users/lvelten/project/Methylome/src/MissionBio/metadata.json \
---output $out_file
+python3 ${TAPESTRI}/lib/python3.6/site-packages/missionbio/dna/split_bam_by_barcode.py -i $in_file -o $out_folder -n $cores
 
 #Cleaning up
 rm -rf $tmp_folder
