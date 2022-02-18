@@ -136,7 +136,7 @@ ph <- pheatmap(selected_data,
                                                            "NBC.mean",
                                                            "MBC.mean")),
                annotation_row = subset(rowinfo, select = c("Nfeatures",
-                                                           "CellType")),
+                                                           "CellType_detailed")),
                                                            #"CD10",
                                                            #"CD27")),
                                                            #"CD19", 
@@ -201,7 +201,7 @@ s2_s4_clust<- c('1'='S2 cells',
 names(s2_s4_clust) <- n_clust
 ct_detailed[names(s2_s4_clust)] <- s2_s4_clust
 rowinfo[names(ct_detailed), 'CellType_detailed'] <- ct_detailed
-write.csv(rowinfo, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/rowinfo.csv'))
+#write.csv(rowinfo, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/rowinfo.csv'))
 #write.csv(colinfo, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/colinfo.csv'))
 
 to_plot <- rowinfo[, -c(1:6, 8)]
