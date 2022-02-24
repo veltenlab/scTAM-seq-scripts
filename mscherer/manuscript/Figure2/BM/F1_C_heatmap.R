@@ -58,27 +58,27 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
 sample <- 'Sample11_70_percent_good_performance'
 uncut <- 'Sample12_70_percent_good_performance'
 protein <- 'Sample11'
-plot_path <- '/users/mscherer/cluster/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample11/'
+plot_path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample11/'
 
-selected_amplicons <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/',
+selected_amplicons <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/',
                                        uncut, '/tsv/selected_amplicons.tsv'),
                               row.names = 1)
-#selected_amplicons <- read.table('/users/mscherer/cluster/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv',
+#selected_amplicons <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv',
 #                                  row.names = 1)
 #selected_amplicons <- subset(selected_amplicons, subset = Type.of.amplicon=="CpG.B.cell.diff")
-#rowinfo <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/all_doublets.tsv'),
+#rowinfo <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/all_doublets.tsv'),
 #                    row.names = 1)
-#rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/all_doublets.csv'),
+#rowinfo <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/', sample, '/tsv/all_doublets.csv'),
 #                    row.names = 1)
-rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/rowinfo.csv'),
+rowinfo <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/rowinfo.csv'),
                      row.names = 1)
-#rowinfo <- read.csv(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/doublet_scores_DoubletDetection.csv'),
+#rowinfo <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/doublet_scores_DoubletDetection.csv'),
 #                    row.names = 2)
 rowinfo <- rowinfo[rowinfo$Doublet==0, ]
-filtered.counts <- read.table(paste0("/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/", sample, "/tsv/", sample, ".barcode.cell.distribution.tsv"),
+filtered.counts <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/", sample, "/tsv/", sample, ".barcode.cell.distribution.tsv"),
                                      row.names = 1, header=T)
 
-bulk.methylation <- read.table("/users/mscherer/cluster/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
+bulk.methylation <- read.table("/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
 row.names(bulk.methylation) <- bulk.methylation$amplicon
 colinfo <- bulk.methylation[row.names(selected_amplicons), c("S1.mean",
                                                              "S2.mean",
@@ -112,7 +112,7 @@ selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_a
 #rowinfo$Nfeatures <- apply(selected_data, 1, function(x){
 #  sum(x>0)
 #})
-# prot_data <- read.table(paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/tapestri/protein/',
+# prot_data <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/protein/',
 #    protein, '/pipeline/results/tsv/Sample11-counts.tsv'),
 #    header=TRUE)
 # prot_data <- prot_data[prot_data$cell_barcode%in%row.names(rowinfo), ]
@@ -123,7 +123,7 @@ selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_a
 #   ab_counts <- x[row.names(rowinfo), 'raw']
 #   rowinfo[, unique(x[, 'ab_description'])] <- ab_counts
 # }
-png(file.path(plot_path, 'heatmap_complete.png'),
+png(file.path(plot_path, 'heatmap_complete_test.png'),
     width=1000,
     height=1600)
 ph <- pheatmap(selected_data, 
@@ -151,8 +151,8 @@ ph <- pheatmap(selected_data,
                color=rev(inferno(50)),
                annotation_colors = color_map,
                fontsize=15,
-               legend = FALSE,
-               annotation_legend = FALSE,
+               #legend = FALSE,
+               #annotation_legend = FALSE,
                labels_row = FALSE,
                labels_col = FALSE)
 dev.off()
@@ -201,8 +201,8 @@ s2_s4_clust<- c('1'='S2 cells',
 names(s2_s4_clust) <- n_clust
 ct_detailed[names(s2_s4_clust)] <- s2_s4_clust
 rowinfo[names(ct_detailed), 'CellType_detailed'] <- ct_detailed
-#write.csv(rowinfo, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/rowinfo.csv'))
-#write.csv(colinfo, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/colinfo.csv'))
+#write.csv(rowinfo, paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/rowinfo.csv'))
+#write.csv(colinfo, paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', sample, '/tsv/colinfo.csv'))
 
 to_plot <- rowinfo[, -c(1:6, 8)]
 to_plot <- reshape2::melt(to_plot, id='CellType')
