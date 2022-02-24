@@ -9,6 +9,7 @@ library(SeuratWrappers)
 library(monocle3)
 library(viridis)
 library(gridExtra)
+library(RnBeads)
 sample <- 'Sample11_70_percent_good_performance'
 protein <- 'Sample11'
 out.folder <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample11/'
@@ -204,3 +205,52 @@ png(file.path(out.folder,"UMAP_protein_methylome.png"), width = 40, height = 45,
 plots <- do.call(grid.arrange, c(plot_list, ncol = 7))
 dev.off()
 
+cts_seurat <- seurat.obj[[]]$predicted.ct
+cts_sergio <- Idents(sergio.obj)
+meth_data <- as.matrix(GetAssayData(seurat.obj, assay='DNAm'))
+rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
+cluster_mean_meth <- aggregate(t(meth_data), by=list(cts_seurat),  mean, na.rm=TRUE)
+cluster_mean_rna <- aggregate(t(rna_data), by=list(cts_sergio),  mean, na.rm=TRUE)
+rownames(cluster_mean_meth) <- cluster_mean_meth$Group.1
+cluster_mean_meth <- data.frame(cluster_mean_meth[,- 1])
+rownames(cluster_mean_rna) <- cluster_mean_rna$Group.1
+cluster_mean_rna <- data.frame(cluster_mean_rna[,- 1])
+cluster_mean_rna <- cluster_mean_rna[row.names(cluster_mean_meth), ]
+max_cor_gene <- c()
+for(cpg in colnames(cluster_mean_meth)){
+  max_cor_name <- names(which.max(apply(cluster_mean_rna[, -1], 2, function(x){
+    -cor(x, cluster_mean_meth[, cpg])
+  })))
+  max_cor <- max(apply(cluster_mean_rna[, -1], 2, function(x){
+    -cor(x, cluster_mean_meth[, cpg])
+  }), na.rm=TRUE)
+  max_cor_gene <- c(max_cor_gene, max_cor)
+  names(max_cor_gene)[length(max_cor_gene)] <- max_cor_name
+}
+
+amplicon_info <- read.table("/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt",
+                            sep = '\t',
+                            row.names=1,
+                            header=TRUE)
+row.names(amplicon_info) <- amplicon_info$Type.of.amplicon
+genes <- rnb.annotation2data.frame(rnb.get.annotation('genes', 'hg19'))
+ens_ids <- row.names(genes[unlist(sapply(names(max_cor_gene), function(x)grep(x, genes$symbol)[1])), ])
+ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
+info <- data.frame(CpG=colnames(cluster_mean_meth),
+                   Gene=names(max_cor_gene),
+                   CpG_chromosome=amplicon_info[colnames(cluster_mean_meth), 'Start.hg19'],
+                   CpG_start=amplicon_info[colnames(cluster_mean_meth), 'End.hg19'],
+                   CpG_end=amplicon_info[colnames(cluster_mean_meth), 'CpG_Names'],
+                   Gene_chromosome=genes[ens_ids, 'Chromosome'],
+                   Gene_start=genes[ens_ids, 'Start'],
+                   Gene_end=genes[ens_ids, 'End'],
+                   Correlation=max_cor_gene)
+write.csv(info, '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlated_gene_information.csv')
+p1 <- FeaturePlot(seurat.obj, features='AMPL131040')
+p2 <- FeaturePlot(sergio.obj, features='CXCR5', reduction='MOFAUMAP')
+p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
+p4 <- DimPlot(sergio.obj, group.by='TrianaCellType', reduction='MOFAUMAP')+scale_color_manual(values=color_map)
+png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlation_ampli_gene_CXCR5.png',
+    height=2500, width=4000, res=300)
+grid.arrange(p1, p2, p3, p4, ncol=2)
+dev.off()
