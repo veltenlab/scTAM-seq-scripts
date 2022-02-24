@@ -206,6 +206,7 @@ plots <- do.call(grid.arrange, c(plot_list, ncol = 7))
 dev.off()
 
 cts_seurat <- seurat.obj[[]]$predicted.ct
+Idents(sergio.obj) <- 'ct'
 cts_sergio <- Idents(sergio.obj)
 meth_data <- as.matrix(GetAssayData(seurat.obj, assay='DNAm'))
 rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
@@ -216,15 +217,38 @@ cluster_mean_meth <- data.frame(cluster_mean_meth[,- 1])
 rownames(cluster_mean_rna) <- cluster_mean_rna$Group.1
 cluster_mean_rna <- data.frame(cluster_mean_rna[,- 1])
 cluster_mean_rna <- cluster_mean_rna[row.names(cluster_mean_meth), ]
+amplicon_info <- read.table("/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt",
+                            sep = '\t',
+                            row.names=1,
+                            header=TRUE)
+row.names(amplicon_info) <- amplicon_info$Type.of.amplicon
+genes <- rnb.annotation2data.frame(rnb.get.annotation('genes', 'hg19'))
+ens_ids <- row.names(genes[unlist(sapply(colnames(cluster_mean_rna)[-1], function(x)grep(x, genes$symbol)[1])), ])
+ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
+genes <- genes[ens_ids, ]
 max_cor_gene <- c()
-for(cpg in colnames(cluster_mean_meth)){
-  max_cor_name <- names(which.max(apply(cluster_mean_rna[, -1], 2, function(x){
-    -cor(x, cluster_mean_meth[, cpg])
-  })))
-  max_cor <- max(apply(cluster_mean_rna[, -1], 2, function(x){
-    -cor(x, cluster_mean_meth[, cpg])
-  }), na.rm=TRUE)
-  max_cor_gene <- c(max_cor_gene, max_cor)
+for(i in 1:length(colnames(cluster_mean_meth))){
+  cpg <- colnames(cluster_mean_meth)[i]
+  chr <- ampli_info[cpg, 'chr']
+  str <- ampli_info[cpg, 'amplicon_start']
+  end<- ampli_info[cpg, 'amplicon_end']
+  stra <- genes[ens_ids, 'Strand']
+  sel_genes <- genes[, 'Chromosome']==chr &
+    str > genes[, 'Start']-25000&
+    end < genes[, 'End']+25000
+  sel_genes[is.na(sel_genes)] <- FALSE
+  sel_genes_symbols <- intersect(genes[sel_genes, 'symbol'], colnames(cluster_mean_rna))
+  if(length(sel_genes_symbols)==0){
+    max_cor_name <- NA
+    max_cor <- NA
+  }else{  
+    max_cor_name <- names(which.max(apply(cluster_mean_rna[, sel_genes_symbols, drop=FALSE], 2, function(x){
+      -cor(x, cluster_mean_meth[, cpg])
+    })))
+    max_cor <- max(apply(cluster_mean_rna[, sel_genes_symbols, drop=FALSE], 2, function(x){
+      -cor(x, cluster_mean_meth[, cpg])
+    }), na.rm=TRUE)
+  }
   names(max_cor_gene)[length(max_cor_gene)] <- max_cor_name
 }
 
@@ -254,3 +278,61 @@ png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/co
     height=2500, width=4000, res=300)
 grid.arrange(p1, p2, p3, p4, ncol=2)
 dev.off()
+
+p1 <- FeaturePlot(seurat.obj, features='AMPL131219')
+p2 <- FeaturePlot(sergio.obj, features='AURKB', reduction='MOFAUMAP')
+p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
+p4 <- DimPlot(sergio.obj, group.by='TrianaCellType', reduction='MOFAUMAP')+scale_color_manual(values=color_map)
+png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlation_ampli_gene_AURKB_positive.png',
+    height=2500, width=4000, res=300)
+grid.arrange(p1, p2, p3, p4, ncol=2)
+dev.off()
+
+genes <- rnb.annotation2data.frame(rnb.get.annotation('genes', 'hg19'))
+ens_ids <- row.names(genes[unlist(sapply(colnames(cluster_mean_rna)[-1], function(x)grep(x, genes$symbol)[1])), ])
+ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
+genes <- genes[ens_ids, ]
+max_cor_gene <- c()
+for(i in 1:length(colnames(cluster_mean_meth))){
+  cpg <- colnames(cluster_mean_meth)[i]
+  chr <- ampli_info[cpg, 'chr']
+  str <- ampli_info[cpg, 'amplicon_start']
+  end<- ampli_info[cpg, 'amplicon_end']
+  stra <- genes[ens_ids, 'Strand']
+  sel_genes <- genes[, 'Chromosome']==chr &
+    str > genes[, 'Start']-25000&
+    end < genes[, 'End']+25000
+  sel_genes[is.na(sel_genes)] <- FALSE
+  sel_genes_symbols <- intersect(genes[sel_genes, 'symbol'], colnames(cluster_mean_rna))
+  if(length(sel_genes_symbols)==0){
+    max_cor_name <- NA
+    max_cor <- NA
+  }else{  
+    max_cor_name <- names(which.max(apply(cluster_mean_rna[, sel_genes_symbols, drop=FALSE], 2, function(x){
+      cor(x, cluster_mean_meth[, cpg])
+    })))
+    max_cor <- max(apply(cluster_mean_rna[, sel_genes_symbols, drop=FALSE], 2, function(x){
+      cor(x, cluster_mean_meth[, cpg])
+    }), na.rm=TRUE)
+  }
+  max_cor_gene <- c(max_cor_gene, max_cor)
+  names(max_cor_gene)[length(max_cor_gene)] <- max_cor_name
+}
+amplicon_info <- read.table("/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt",
+                            sep = '\t',
+                            row.names=1,
+                            header=TRUE)
+row.names(amplicon_info) <- amplicon_info$Type.of.amplicon
+genes <- rnb.annotation2data.frame(rnb.get.annotation('genes', 'hg19'))
+ens_ids <- row.names(genes[unlist(sapply(names(max_cor_gene), function(x)grep(x, genes$symbol)[1])), ])
+ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
+info <- data.frame(CpG=colnames(cluster_mean_meth),
+                   Gene=names(max_cor_gene),
+                   CpG_chromosome=amplicon_info[colnames(cluster_mean_meth), 'Start.hg19'],
+                   CpG_start=amplicon_info[colnames(cluster_mean_meth), 'End.hg19'],
+                   CpG_end=amplicon_info[colnames(cluster_mean_meth), 'CpG_Names'],
+                   Gene_chromosome=genes[ens_ids, 'Chromosome'],
+                   Gene_start=genes[ens_ids, 'Start'],
+                   Gene_end=genes[ens_ids, 'End'],
+                   Correlation=max_cor_gene)
+write.csv(info, '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlated_gene_information_positive.csv')
