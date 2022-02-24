@@ -288,6 +288,12 @@ png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/co
 grid.arrange(p1, p2, p3, p4, ncol=2)
 dev.off()
 
+p1 <- FeaturePlot(seurat.obj, features='AMPL131145')
+p2 <- FeaturePlot(sergio.obj, features='ATOX1', reduction='Projected')
+p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
+p4 <- DimPlot(sergio.obj, group.by='ct', reduction='Projected')+scale_color_manual(values=color_map)
+grid.arrange(p1, p2, p3, p4, ncol=2)
+
 genes <- rnb.annotation2data.frame(rnb.get.annotation('genes', 'hg19'))
 ens_ids <- row.names(genes[unlist(sapply(colnames(cluster_mean_rna)[-1], function(x)grep(x, genes$symbol)[1])), ])
 ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
