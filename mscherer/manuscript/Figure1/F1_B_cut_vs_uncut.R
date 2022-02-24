@@ -5,7 +5,7 @@
 library(ggplot2)
 cut <- 'Sample11_70_percent_good_performance'
 uncut <- 'Sample12_70_percent_good_performance'
-plot.path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure1/Sample11/'
+plot.path <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
                text=element_text(color='black',size=6),
@@ -34,29 +34,19 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/", cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
+dat_cut <- read.table(paste0(cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
                   sep="\t", 
                   header=T)
-#doublet <- read.csv('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/old/Figure1/reclustering_doublet_names.csv')
-#double2 <- read.csv('/users/lvelten/project/Methylome/analysis/missionbio/tapestri/BCells_Sample7_70_percent_good_performance/tsv/doublet_scores_DoubletDetection.csv')
-#doublets <- c(doublet$x, double2$Barcode[double2$DoubletDetectionLabel==1])
-#doublets <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/' ,
-#  cut, '/tsv/doublet_scores_DoubletDetection.csv'))
-#doublets <- doublets$Barcode[doublets$DoubletDetectionLabel==1]
-#dat_cut <- dat_cut[!(row.names(dat_cut)%in%doublets), ]
-rowinfo <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/' ,
-                           cut, '/tsv/rowinfo.csv'),
-                    row.names=1)
-dat_cut <- dat_cut[row.names(rowinfo), ]
-dat_uncut <- read.table(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/",
-                               uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+rowinfo <- read.csv(paste0('../../misc/', cut, '/tsv/rowinfo.csv'), row.names=1)
+non_doublets <- row.names(rowinfo)[which(rowinfo$DoubletDetectionLabel==0)]
+dat_cut <- dat_cut[non_doublets, ]
+dat_uncut <- read.table(paste0(uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
                       sep="\t", 
                       header=T)
-doublet <- read.csv(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/', 
-  uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
-doublets <- c(doublet$Barcode[doublet$DoubletDetectionLabel==1])
-dat_uncut <- dat_uncut[!(row.names(dat_uncut)%in%doublets), ]
-ampli_info <- read.table('/users/lvelten/project/Methylome/infos/BCells/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+doublet <- read.csv(paste0(uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
+non_doublets <- doublet$Barcode[which(doublet$DoubletDetectionLabel==0)]
+dat_uncut <- dat_uncut[non_doublets, ]
+ampli_info <- read.table('../../Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 in_all <- intersect(colnames(dat_cut), intersect(colnames(dat_uncut), row.names(ampli_info)))
 dropout_cut <- apply(dat_cut[, in_all], 2, function(x){
   1-(sum(x==0)/length(x))
@@ -71,7 +61,7 @@ type_clear <- c("mut.only"="Mutation only",
                 "CpG.MCL"="MCL-specific CpG",
                 "CpG.MCL.multiple.cutsites"="MCL-specific CpG",
                 "CpG.always.unmeth.B"="Always unmethylated CpG in Bcells",
-                "CpG.B.cell.diff.and.MCL"="Differential CpG Bcells",        
+                "CpG.B.cell.diff.and.MCL"="Differential CpG Bcells AND MCL-specific CpG",        
                 "CpG.always.meth.B"="Always methylated CpG in Bcells",
                 "CpG.imprinted.multiple.cutsites"="Imprinted CpG multiple",
                 "CpG.imprinted"="Imprinted CpG")
@@ -85,10 +75,10 @@ for(i in 1:nrow(to_plot)){
   cors <- c(cors, cori)
 }
 to_plot$Correlation <- cors
+
 plot_theme <- plot_theme+theme(axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point()+geom_abline(slope=1, intercept=0)+facet_wrap(Type~.)+
-  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), y=1, x=0.25, geom='text', check_overlap=TRUE, color='black', size=2.5)+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+  plot_theme+scale_color_manual(values=colors_amplicons)
 ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_all.pdf'), plot, width=175, height=100, units='mm')
 to_plot <- to_plot[to_plot$Type%in%c("No HhaI cutsite",
@@ -101,14 +91,13 @@ to_plot$Type <- factor(to_plot$Type, levels=c("No HhaI cutsite",
                                               "Always unmethylated CpG in Bcells", 
                                               "Differential CpG Bcells"))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
-  geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 2)+
-  geom_text(aes(label=paste('Pearsons R²:', format(Correlation, digits=2))), y=.95, x=0.4, geom='text', check_overlap=TRUE, color='black', size=2)+
+  geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 1)+
+  geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), y=.95, x=0.2, geom='text', check_overlap=TRUE, color='black', size=2, fontface='bold')+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
-plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=60, height=60, units='mm')
+  plot_theme+scale_color_manual(values=colors_amplicons)
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, height=40, units='mm')
 
-# Select the amplicons with dropout rate < 0.9 in the uncut experiment
 selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
 selected_amplicons <- ampli_info[selected_amplicons, ]                          
-write.table(selected_amplicons, paste0('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/', 
-  uncut, '/tsv/selected_amplicons.tsv'))
+write.table(selected_amplicons, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
+                                      uncut, '/tsv/selected_amplicons.tsv'))
