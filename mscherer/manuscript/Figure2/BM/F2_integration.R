@@ -74,11 +74,12 @@ seurat.obj <- ScaleData(seurat.obj,
 seurat.obj <- RunPCA(seurat.obj,
     features=row.names(seurat.obj))
 
-sergio.obj <- readRDS('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Sergio/data/Healthy.rds')
+sergio.obj <- readRDS('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Sergio/data/WTA_projected.rds')
+Idents(sergio.obj) <- 'ct'
 cells <- Idents(sergio.obj)
 DefaultAssay(sergio.obj) <- 'RNA'
-sergio.obj[['BOTH']] <- NULL
-sergio.obj[['integrated']] <- NULL
+#sergio.obj[['BOTH']] <- NULL
+#sergio.obj[['integrated']] <- NULL
 sergio.obj <- FindVariableFeatures(sergio.obj)
 sergio.obj <- RunPCA(sergio.obj,
  reduction.name='pcaRNA')
@@ -249,6 +250,7 @@ for(i in 1:length(colnames(cluster_mean_meth))){
       -cor(x, cluster_mean_meth[, cpg])
     }), na.rm=TRUE)
   }
+  max_cor_gene <- c(max_cor_gene, max_cor)
   names(max_cor_gene)[length(max_cor_gene)] <- max_cor_name
 }
 
@@ -270,13 +272,44 @@ info <- data.frame(CpG=colnames(cluster_mean_meth),
                    Gene_end=genes[ens_ids, 'End'],
                    Correlation=max_cor_gene)
 write.csv(info, '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlated_gene_information.csv')
-p1 <- FeaturePlot(seurat.obj, features='AMPL131040')
-p2 <- FeaturePlot(sergio.obj, features='CXCR5', reduction='MOFAUMAP')
-p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
-p4 <- DimPlot(sergio.obj, group.by='TrianaCellType', reduction='MOFAUMAP')+scale_color_manual(values=color_map)
+
+sel_cts <- c('HSCs & MPPs', 'Pre-B cells', 'Pro-B cells', 'Pre-pro-B cells', 'Immature B cells',
+             'Mature naive B cells', 'Class switched memory B cells', 'Nonswitched memory B cells')
+sel_cells <- names(Idents(sergio.obj)[Idents(sergio.obj)%in%sel_cts])
+
+to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)
+to_plot <- data.frame(to_plot, AMPL131040=t(GetAssayData(seurat.obj))[, 'AMPL131040'])
+p1 <- ggplot(to_plot, aes(x=UMAP_1, y=UMAP_2, color=AMPL131040))+geom_point(size=.15, stroke=.15)+
+  plot_theme_facet+scale_color_viridis(option='mako', direction=-1)+ggtitle('AMPL131040')
+to_plot <- as.data.frame(sergio.obj[['Projected']]@cell.embeddings[sel_cells, ])
+to_plot <- data.frame(to_plot, CXCR5=t(GetAssayData(sergio.obj))[sel_cells, 'CXCR5'])
+p2 <- ggplot(to_plot, aes(x=Projected_1, y=Projected_2, color=CXCR5))+geom_point(size=.15, stroke=.15)+
+  plot_theme_facet+scale_color_viridis(option='mako', direction=-1)+ggtitle('CXCR5')
 png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlation_ampli_gene_CXCR5.png',
-    height=2500, width=4000, res=300)
-grid.arrange(p1, p2, p3, p4, ncol=2)
+    height=453, width=792, res=300)
+grid.arrange(p1, p2, ncol=2)
+dev.off()
+
+to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)
+to_plot <- data.frame(to_plot, AMPL131282=t(GetAssayData(seurat.obj))[, 'AMPL131282'])
+p1 <- ggplot(to_plot, aes(x=UMAP_1, y=UMAP_2, color=AMPL131282))+geom_point(size=.15, stroke=.15)+
+  plot_theme_facet+scale_color_viridis(option='mako', direction=-1)+ggtitle('AMPL131282')
+to_plot <- as.data.frame(sergio.obj[['Projected']]@cell.embeddings[sel_cells, ])
+to_plot <- data.frame(to_plot, SMARCA4=t(GetAssayData(sergio.obj))[sel_cells, 'SMARCA4'])
+p2 <- ggplot(to_plot, aes(x=Projected_1, y=Projected_2, color=SMARCA4))+geom_point(size=.15, stroke=.15)+
+  plot_theme_facet+scale_color_viridis(option='mako', direction=-1)+ggtitle('SMARCA4')
+png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlation_ampli_gene_SMARCA4.png',
+    height=453, width=792, res=300)
+grid.arrange(p1, p2, ncol=2)
+dev.off()
+
+to_plot <- as.data.frame(sergio.obj[['Projected']]@cell.embeddings)
+to_plot <- data.frame(to_plot, CellType=Idents(sergio.obj))
+p2 <- ggplot(to_plot, aes(x=Projected_1, y=Projected_2, color=CellType))+geom_point(size=.15, stroke=.15)+
+  plot_theme_facet+scale_color_manual(values=color_map)
+png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/Triana_UMAP.png',
+    height=453, width=396, res=300)
+p2
 dev.off()
 
 p1 <- FeaturePlot(seurat.obj, features='AMPL131219')
@@ -288,8 +321,8 @@ png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/co
 grid.arrange(p1, p2, p3, p4, ncol=2)
 dev.off()
 
-p1 <- FeaturePlot(seurat.obj, features='AMPL131145')
-p2 <- FeaturePlot(sergio.obj, features='ATOX1', reduction='Projected')
+p1 <- FeaturePlot(seurat.obj, features='AMPL131059')
+p2 <- FeaturePlot(sergio.obj, features='LTBR', reduction='Projected')
 p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
 p4 <- DimPlot(sergio.obj, group.by='ct', reduction='Projected')+scale_color_manual(values=color_map)
 grid.arrange(p1, p2, p3, p4, ncol=2)
@@ -342,3 +375,42 @@ info <- data.frame(CpG=colnames(cluster_mean_meth),
                    Gene_end=genes[ens_ids, 'End'],
                    Correlation=max_cor_gene)
 write.csv(info, '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlated_gene_information_positive.csv')
+
+DefaultAssay(sergio.obj) <- 'RNA'
+markers <- FindMarkers(sergio.obj, ident.1=c('HSCs & MPPs', 'Pre-B cells', 'Pro-B cells', 'Pre-pro-B cells', 'Immature B cells'),
+                       ident.2=c('Mature naive B cells', 'Class switched memory B cells', 'Nonswitched memory B cells'))
+int_genes <- intersect(info$Gene, row.names(markers))
+info[info$Gene%in%int_genes&info$Correlation>0, ]
+
+FeaturePlot(joint.obj, features=c('AMPL130599', 'GNB1'))
+p1 <- FeaturePlot(seurat.obj, features='AMPL130599')
+p2 <- FeaturePlot(sergio.obj, features='GNB1', reduction='Projected', cells=colnames(sergio.obj)[Idents(sergio.obj)%in%sel_cts])
+p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
+p4 <- DimPlot(sergio.obj, group.by='ct', reduction='Projected')+scale_color_manual(values=color_map)
+png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlation_ampli_gene_GNB1_positive.png',
+    height=2500, width=4000, res=300)
+grid.arrange(p1, p2, p3, p4, ncol=2)
+dev.off()
+
+p1 <- FeaturePlot(seurat.obj, features='AMPL131282')
+p2 <- FeaturePlot(sergio.obj, features='SMARCA4', reduction='Projected')
+p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
+p4 <- DimPlot(sergio.obj, group.by='ct', reduction='Projected')+scale_color_manual(values=color_map)
+png('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Supplement/correlation_ampli_gene_SMARCA4_positive.png',
+    height=2500, width=4000, res=300)
+grid.arrange(p1, p2, p3, p4, ncol=2)
+dev.off()
+
+seurat.mono <- as.cell_data_set(joint.obj)
+seurat.mono <- cluster_cells(cds = seurat.mono, reduction_method = "UMAP")
+seurat.mono <- learn_graph(seurat.mono, use_partition = FALSE, close_loop=FALSE)
+hscs <- names(Idents(joint.obj)[Idents(joint.obj)%in%'HSCs & MPPs'])
+
+seurat.mono <- order_cells(seurat.mono, reduction_method = "UMAP", root_cells=hscs)
+
+# plot trajectories colored by pseudotime
+to_plot <- as.data.frame(joint.obj[['umap']]@cell.embeddings)
+to_plot <- data.frame(to_plot, Pseudotime=seurat.mono@principal_graph_aux$UMAP$pseudotime)
+plot <- ggplot(to_plot, aes(x=UMAP_1, y=UMAP_2, color=Pseudotime))+geom_point(size=.2, stroke=.2)+
+  plot_theme+scale_color_viridis(option='inferno')
+ggsave(file.path(out.folder,"UMAP_trajectory_joint.png"), width = 40, height = 45, unit='mm')
