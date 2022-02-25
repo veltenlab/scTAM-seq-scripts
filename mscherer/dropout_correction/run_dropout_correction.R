@@ -61,3 +61,4 @@ corrected_values <- sapply(sel.amplicons, function(ampli){
     Cluster2a=get_posterior_mean(sm_c2a)['m', 'mean-all chains'],
     Cluster2b=get_posterior_mean(sm_c2b)['m', 'mean-all chains'])
 })
+write.csv(t(corrected_values), file.path('dropout_modeling', cut, 'corrected_values.csv'))

@@ -99,5 +99,4 @@ ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, 
 
 selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
 selected_amplicons <- ampli_info[selected_amplicons, ]                          
-write.table(selected_amplicons, paste0('/users/mscherer/cluster/project/Methylome/analysis/missionbio/BM/', 
-                                      uncut, '/tsv/selected_amplicons.tsv'))
+write.table(selected_amplicons, paste0(uncut, '/tsv/selected_amplicons.tsv'))

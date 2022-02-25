@@ -28,7 +28,7 @@ uncut <- 'Sample12_70_percent_good_performance'
 protein <- 'Sample8'
 plot_path <- '~'
 
-selected_amplicons <- read.table(paste0('../../misc',
+selected_amplicons <- read.table(paste0('../../misc/',
                                        uncut, '/tsv/selected_amplicons.tsv'),
                               row.names = 1)
 rowinfo <- read.csv(paste0('../../misc/', sample, '/tsv/rowinfo.csv'),
