@@ -3,7 +3,7 @@
 #' 
 
 library(ggplot2)
-plot_path <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample8/protein/'
+plot_path <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -29,7 +29,7 @@ color_map <- c('naive B-cells'='#fcbd7e',
                'ns-memory B-cells'='#fc3262',
                'cs-memory B-cells'='#8e008e')
 
-dat <- read.csv('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/Sample8_70_percent_good_performance/tsv/rowinfo.csv',
+dat <- read.csv('../../misc/Sample8_70_percent_good_performance/tsv/rowinfo.csv',
                     row.names = 1)
 dat$CellType <- factor(as.character(dat$CellType), levels=c('naive B-cells',
                                                             'ns-memory B-cells',
@@ -80,7 +80,6 @@ plot <- ggplot(sel_dat, aes(x=CD27, y=CD25, color=CellType))+geom_point(size=.01
     scale_color_manual(values=color_map)+plot_scatter
 ggsave(file.path(plot_path, 'antibody_scatterplots_CD27_CD25.pdf'), plot,  width=30, height=30, unit='mm')
 
-#sel_dat <-subset(sel_dat, subset=CellType!='naive B-cells')
 to_plot <- reshape2::melt(sel_dat[, !grepl('_raw', colnames(sel_dat))], id='CellType')
 colnames(to_plot)[2:3] <- c('Antibody', 'Expression')
 plot <- ggplot(to_plot, aes(x=CellType, y=Expression, fill=CellType))+geom_violin()+geom_boxplot(alpha=.25, size=.5, outlier.size = .5)+
@@ -197,7 +196,7 @@ plot <- ggplot(sel_dat, aes(x=CD27, y=CD71, color=CellType))+geom_point(size=.05
   scale_color_manual(values=color_map)+plot_scatter
 ggsave(file.path(plot_path, 'antibody_scatterplots_CD27_CD71_positive.pdf'), plot,  width=35, height=35, unit='mm')
 
-dat <- read.csv('/users/lvelten/project/Methylome/analysis/missionbio/re_sequencing/Sample8_70_percent_good_performance/tsv/rowinfo.csv',
+dat <- read.csv('../../misc/Sample8_70_percent_good_performance/tsv/rowinfo.csv',
                 row.names = 1)
 dat$CellType <- factor(as.character(dat$CellType), levels=c('naive B-cells',
                                                             'ns-memory B-cells',

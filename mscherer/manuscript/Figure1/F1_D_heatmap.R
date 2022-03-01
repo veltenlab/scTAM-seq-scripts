@@ -33,7 +33,7 @@ selected_amplicons <- read.table(paste0('../../misc/',
                               row.names = 1)
 rowinfo <- read.csv(paste0('../../misc/', sample, '/tsv/rowinfo.csv'),
                     row.names = 1)
-filtered.counts <- read.table(paste0(sample, "/tsv/", sample, ".barcode.cell.distribution.tsv"),
+filtered.counts <- read.table(paste0('../../data/', sample, "/tsv/", sample, ".barcode.cell.distribution.tsv"),
                                      row.names = 1, header=T)
 
 bulk.methylation <- read.table("../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)

@@ -1,4 +1,4 @@
-############## F2_D_UMAP.R ##############
+############## F2_B_D_UMAP.R ##############
 #' This script creates UMAP and PCA plots for given read counts from scTAM-seq. Standard preprocessing as for
 #' scRNA-seq data (log-normalizing, scaling, PCA, nearest neighbors) is executed. Further information about
 #' cell clustering is visualized in the heatmap.
@@ -40,17 +40,14 @@ plot_theme_facet <- theme(panel.background = element_rect(color='black',fill='wh
                           legend.text = element_text(size=5),
                           plot.title=element_text(color='black',size=5),
                           axis.ticks.length=unit(.1, "cm"))
-dat <- read.table(paste0('/users/lvelten/project/Methylome/analysis/missionbio/BM/',sample,'/tsv/',sample,'.barcode.cell.distribution.tsv'),
+dat <- read.table(paste0('../../data/', sample, '/tsv/', sample, '.barcode.cell.distribution.tsv'),
                   header = T)
-rowinfo <- read.csv(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/",sample,"/tsv/rowinfo.csv"),
+rowinfo <- read.csv(paste0("../../misc/", sample, "/tsv/rowinfo.csv"),
                     row.names = 1)
-#colinfo <- read.table('/users/lvelten/project/Methylome/infos/BCells/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt',
-#                      row.names = 8)
-colinfo <- read.csv(paste0("/users/lvelten/project/Methylome/analysis/missionbio/BM/",sample,"/tsv/colinfo.csv"),
+colinfo <- read.csv(paste0("../../misc/",sample,"/tsv/colinfo.csv"),
                     row.names = 1)
-out.folder <- '/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample11/'
+out.folder <- '~'
 dat <- dat[row.names(rowinfo), row.names(colinfo)]
-#dat <- dat[row.names(rowinfo), ]
 dat <- ifelse(dat>0, 1, 0)
 seurat.obj <- CreateSeuratObject(t(dat),
                                  assay = "DNAm",
@@ -59,7 +56,6 @@ seurat.obj <- NormalizeData(seurat.obj,
                             normalization.method = "LogNormalize",
                             scale.factor = 10000)
 seurat.obj <- ScaleData(seurat.obj, features = row.names(seurat.obj))
-#seurat.obj <- FindVariableFeatures(seurat.obj,nfeatures = 200)
 seurat.obj <- RunPCA(seurat.obj,npcs = 200, features=row.names(seurat.obj))
 ElbowPlot(seurat.obj)
 seurat.obj <- FindNeighbors(seurat.obj, dims = 1:11)
@@ -102,8 +98,6 @@ for(ab in unique(to_plot$variable)){
     plot_theme_facet+scale_color_viridis(option='mako', direction=-1)+ggtitle(ab)
   plot_list[[ab]] <- plot
 }
-#plot_list[[8]] <- plot_list[[4]] 
-#plot_list[[4]] <- ggplot()+theme_void()
 png(file.path(out.folder,"UMAP_proteins.png"), width = 170, height = 40, units='mm', res=300)
 plots <- do.call(grid.arrange, c(plot_list, ncol = 7))
 dev.off()
@@ -126,16 +120,6 @@ for(ab in unique(to_plot$variable)){
 png(file.path(out.folder,"UMAP_proteins_CD138_CD5.png"), width = 50, height = 50, units='mm', res=300)
 plots <- do.call(grid.arrange, c(plot_list))
 dev.off()
-#seurat.obj <- RunTSNE(seurat.obj, dims = 1:10)
-#plot <- DimPlot(seurat.obj, reduction = "tsne", group.by='CellType')+plot_theme+scale_color_manual(values=c('naive B-cells'='#fcbd7e',
-#                                                                                                            'memory B-cells'='#fc6571',
-#                                                                                                            'S2-S4 cells'='#fcef7e',
-#                                                                                                            'S1 cells'='#bdfc7e'))
-#ggsave(file.path(out.folder,"tSNE_CellType.png"), width = 125, height = 100, unit='mm')
-
-
-
-#diff.markers <- FindAllMarkers(seurat.obj)
 
 Idents(seurat.obj) <- 'CellType'
 s1_cells <- names(Idents(seurat.obj)[Idents(seurat.obj)%in%'S1 cells'])
