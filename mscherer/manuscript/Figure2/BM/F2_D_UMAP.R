@@ -86,13 +86,13 @@ to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)
 to_plot <- data.frame(to_plot, seurat.obj[[]])
 to_plot <- to_plot[, c('UMAP_1',
                        'UMAP_2',
-                       'CD10',
-                       'CD19',
-                       'CD27',
                        'CD34',
+                       'CD10',
                        'CD38',
-                       'CD45RA',
-                       'CD90'                       )]
+                       'CD19',
+                       'CD27')]
+#                       'CD45RA',
+#                       'CD90'                       )]
 to_plot <- reshape2::melt(to_plot, id=c('UMAP_1', 'UMAP_2'))
 to_plot$value <- as.numeric(to_plot$value)
 plot_list <- list()
@@ -105,7 +105,7 @@ for(ab in unique(to_plot$variable)){
 #plot_list[[8]] <- plot_list[[4]] 
 #plot_list[[4]] <- ggplot()+theme_void()
 png(file.path(out.folder,"UMAP_proteins.png"), width = 170, height = 40, units='mm', res=300)
-plots <- do.call(grid.arrange, c(plot_list, ncol = 7))
+plots <- do.call(grid.arrange, c(plot_list, ncol = 5))
 dev.off()
 
 to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)
