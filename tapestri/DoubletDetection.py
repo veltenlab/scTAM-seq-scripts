@@ -7,8 +7,6 @@ parser.add_argument('--input', dest='input', help='The input tsv file generated 
 parser.add_argument('--output', dest='output', help='The output csv file')
 args = parser.parse_args()
 
-sample = 'BCells_Sample6_70_percent_good_performance'
-
 dat = pd.read_table(args.input, sep='\t')
 
 clf = doubletdetection.BoostClassifier()

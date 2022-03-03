@@ -24,13 +24,14 @@ echo "$(date): Started the MissionBio Protein pipeline"
 # Variables
 #adapter_sequence_a="CTGTCTCTTATA"
 #adapter_sequence_g="TATAAGAGACAG"
-ref_genome="/users/lvelten/project/Methylome/references/MissionBio/hg19/ucsc_hg19.fa"
-adapter_3="/users/lvelten/project/Methylome/data/MissionBio/protein_pipeline/ab_adapters_3.fasta"
-adapter_5="/users/lvelten/project/Methylome/data/MissionBio/protein_pipeline/ab_adapters_5.fasta"
-ab_barcodes="/users/lvelten/project/Methylome/infos/BCells/totalseq-d-heme-oncology-CD27.csv"
+#To be downloaded from: https://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
+ref_genome="ucsc_hg19.fa"
+adapter_3="ab_adapters_3.fasta"
+adapter_5="ab_adapters_5.fasta"
+ab_barcodes="totalseq-d-heme-oncology-CD27.csv"
 
 # Load conda env
-source /software/as/el7.2/anaconda3/bin/activate /users/lvelten/mscherer/conda/envs/tapestri
+conda activate $TAPESTRI
 
 # Run the pipeline
 echo "###################################################################################################"
