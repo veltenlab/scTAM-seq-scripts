@@ -206,9 +206,62 @@ png(file.path(out.folder,"UMAP_protein_methylome.png"), width = 40, height = 45,
 plots <- do.call(grid.arrange, c(plot_list, ncol = 7))
 dev.off()
 
-cts_seurat <- seurat.obj[[]]$predicted.ct
+sergio.obj <- readRDS('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Sergio/data/WTA_projected.rds')
+plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
+                    panel.grid=element_blank(),
+                    text=element_text(color='black',size=6),
+                    axis.text=element_text(color='black',size=5),
+                    axis.ticks=element_line(color='black', size=.25),
+                    strip.background = element_blank(),
+                    strip.text.x = element_blank(),
+                    legend.key=element_rect(color=NA, fill=NA),
+                    legend.position='none')
+ct_map <- c('HSCs & MPPs'='S1cells',
+                               'Pre-pro-B cells'='S2cells',
+                               'Pro-B cells'='S2cells',
+                               'Pre-B cells'='S2cells',
+                              'Immature B cells'='S3S4cells',
+                                'Nonswitched memory B cells'='MemoryB',
+                              'Class switched memory B cells'='MemoryB',
+                               'Mature naive B cells'='NaiveB')
+color_map <- c('NaiveB'='#fcbd7e',
+               'MemoryB'='#fc3262',
+               'S3S4cells'='#fcef7e',
+               'S2cells'='#d7ef7e',
+               'S1cells'='#bdfc7e')
 Idents(sergio.obj) <- 'ct'
-cts_sergio <- Idents(sergio.obj)
+cts_sergio <- ct_map[as.character(Idents(sergio.obj))]
+sergio.obj <- sergio.obj[, !is.na(cts_sergio)]
+cts_sergio <- cts_sergio[!is.na(cts_sergio)]
+meth_data <- read.csv('/users/lvelten/project/Methylome/analysis/dropou_modeling/BM/all_amplicons.csv',
+                      row.names=1)
+rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
+cluster_mean_meth <- t(meth_data)
+cluster_mean_rna <- aggregate(t(rna_data), by=list(cts_sergio),  mean, na.rm=TRUE)
+rownames(cluster_mean_rna) <- cluster_mean_rna$Group.1
+cluster_mean_rna <- data.frame(cluster_mean_rna[,- 1])
+cluster_mean_rna <- cluster_mean_rna[row.names(cluster_mean_meth), ]
+to_plot <- data.frame(CellType=row.names(cluster_mean_rna),
+                      CXCR5=cluster_mean_rna[, 'CXCR5'],
+                      AMPL131040=cluster_mean_meth[, 'AMPL131040'])
+p_val <- cor.test(to_plot$CXCR5, to_plot$AMPL131040)$p.value
+plot <- ggplot(to_plot, aes(x=AMPL131040, y=CXCR5, color=CellType))+geom_point()+plot_theme+
+  scale_color_manual(values=color_map)+annotate(geom='text', label=paste('R²:', format(p_val, digits=3)), x=0.5, y=0.35)
+ggsave('/users/lvelten/project/Methylome/analysis/scTAMseq_manuscript/Figure2/Sample11/CXCR5_AMPL131040_scatterplot.pdf',
+       plot,
+       width=35,
+       height=40,
+       unit='mm')
+
+to_plot <- data.frame(CellType=row.names(cluster_mean_rna),
+                      CXCR5=cluster_mean_rna[, 'SMARCA4'],
+                      AMPL131040=cluster_mean_meth[, 'AMPL131282'])
+plot <- ggplot(to_plot, aes(x=AMPL131282, y=SMARCA4, color=CellType))+geom_point()+plot_theme+
+  scale_color_manual(values=color_map)
+
+cts_seurat <- ct_map[seurat.obj[[]]$predicted.ct]
+Idents(sergio.obj) <- 'ct'
+cts_sergio <- ct_map[Idents(sergio.obj)]
 meth_data <- as.matrix(GetAssayData(seurat.obj, assay='DNAm'))
 rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
 cluster_mean_meth <- aggregate(t(meth_data), by=list(cts_seurat),  mean, na.rm=TRUE)
