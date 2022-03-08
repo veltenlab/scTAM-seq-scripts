@@ -95,7 +95,7 @@ plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), y=.95, x=0.2, geom='text', check_overlap=TRUE, color='black', size=2, fontface='bold')+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
   plot_theme+scale_color_manual(values=colors_amplicons)
-ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, height=40, units='mm')
+ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, height=38, units='mm')
 
 selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
 selected_amplicons <- ampli_info[selected_amplicons, ]                          

@@ -2,7 +2,7 @@
 #' This file is used to identify further doublets that show substantial deviation from
 #' the expected number of features based on a previous clustering of cells.
 
-library(pheatmap)
+library(ComplexHeatmap)
 library(viridis)
 library(ggplot2)
 color_map <- list(CellType_broad=c('naive B-cells'='#fcbd7e',
@@ -97,7 +97,7 @@ ph <- pheatmap(selected_data,
                show_colnames = F, 
                cutree_rows = 4, 
                clustering_method = "ward.D2",
-               color=rev(inferno(50)),
+               col=rev(inferno(50)),
                annotation_colors = color_map,
                fontsize=15,
                legend = FALSE,
@@ -117,8 +117,6 @@ ph <- pheatmap(selected_data,
                                                            "S4.mean",
                                                            "NBC.mean",
                                                            "MBC.mean")),
-               annotation_row = subset(rowinfo, select = c("Nfeatures",
-                                                           "CellType_detailed")),
                clustering_distance_cols = "binary", 
                clustering_distance_rows = "binary", 
                show_rownames = F, 
