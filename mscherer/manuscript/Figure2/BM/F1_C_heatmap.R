@@ -2,7 +2,7 @@
 #' This file is used to identify further doublets that show substantial deviation from
 #' the expected number of features based on a previous clustering of cells.
 
-library(pheatmap)
+library(ComplexHeatmap)
 library(viridis)
 library(ggplot2)
 #library(autothresholdr)
@@ -123,36 +123,37 @@ selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_a
 #   ab_counts <- x[row.names(rowinfo), 'raw']
 #   rowinfo[, unique(x[, 'ab_description'])] <- ab_counts
 # }
-png(file.path(plot_path, 'heatmap_complete_test.png'),
+anno_col <- HeatmapAnnotation(subset(colinfo, select = c("S1.mean",
+                                                         "S2.mean",
+                                                         #"S3.mean",
+                                                         "S4.mean",
+                                                         #"GC.mean",
+                                                         #"PB.mean",
+                                                         "NBC.mean",
+                                                         "MBC.mean")))
+anno_row <- HeatmapAnnotation(subset(rowinfo, select = c("CellType_detailed")),
+                              #"CD10",
+                              #"CD27")),
+                              #"CD19", 
+                              #"CD34",
+                              #"CD45RA")))
+png(file.path(plot_path, 'heatmap_complete.png'),
     width=1000,
     height=1600)
-ph <- pheatmap(selected_data, 
-               annotation_col = subset(colinfo, select = c("S1.mean",
-                                                           "S2.mean",
-                                                           "S3.mean",
-                                                           "S4.mean",
-                                                           #"GC.mean",
-                                                           #"PB.mean",
-                                                           "NBC.mean",
-                                                           "MBC.mean")),
-               annotation_row = subset(rowinfo, select = c("Nfeatures",
-                                                           "CellType_detailed")),
-                                                           #"CD10",
-                                                           #"CD27")),
-                                                           #"CD19", 
-                                                           #"CD34",
-                                                           #"CD45RA")), 
+Heatmap(selected_data, 
+               annotation_col = anno_col,
+               annotation_row = anno_row, 
                clustering_distance_cols = "binary", 
                clustering_distance_rows = "binary",
                show_rownames = F, 
                show_colnames = F, 
                cutree_rows = 4, 
                clustering_method = "ward.D2",
-               color=rev(inferno(50)),
+               col=rev(inferno(50)),
                annotation_colors = color_map,
                fontsize=15,
-               #legend = FALSE,
-               #annotation_legend = FALSE,
+               legend = FALSE,
+               annotation_legend = FALSE,
                labels_row = FALSE,
                labels_col = FALSE)
 dev.off()
@@ -170,8 +171,7 @@ ph <- pheatmap(selected_data,
                                                            #"PB.mean",
                                                            "NBC.mean",
                                                            "MBC.mean")),
-               annotation_row = subset(rowinfo, select = c("Nfeatures",
-                                                           "CellType_detailed")),
+               annotation_row = subset(rowinfo, select = c("CellType_detailed")),
                #"CD10",
                #"CD27")),
                #"CD19", 
