@@ -3,9 +3,9 @@
 #' negative rate and dropout rates
 
 library(ggplot2)
-cut <- 'Sample11_70_percent_good_performance'
-uncut <- 'Sample12_70_percent_good_performance'
-plot.path <- '~'
+cut <- 'GSM5935921_BM_HhaI'
+uncut <- 'GSM5935923_BM_undigested'
+plot_path <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -34,12 +34,12 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0('../../data', cut, ".barcode.cell.distribution.tsv"), 
+dat_cut <- read.table(paste0('../../data/', cut, ".tsv.gz"), 
                       sep="\t", 
                       header=T)
 rowinfo <- read.csv(paste0('../../misc/', cut, '/tsv/rowinfo.csv'),
                     row.names = 1)
-dat_uncut <- read.table(paste0('../../data', uncut, ".barcode.cell.distribution.tsv"), 
+dat_uncut <- read.table(paste0('../../data/', uncut, ".tsv.gz"), 
                         sep="\t", 
                         header=T)
 rowinfo_uncut <- read.csv(paste0('../../misc/', uncut, '/tsv/doublet_scores_DoubletDetection.csv'),
@@ -67,7 +67,7 @@ to_plot <- data.frame(Type=c(rep('FPR', length(fpr)),
                      Value=c(fpr, fnr))
 plot <- ggplot(to_plot, aes(x=Type, y=Value))+geom_boxplot(color='black', fill='gray80', size=.25, outlier.size=.25)+plot_theme+
   xlab('')+ylab('')
-ggsave('F1_basic_statistics.pdf', 
+ggsave(file.path(plot_path, 'F1_basic_statistics.pdf'), 
        plot,
        width=40,
        height=40,

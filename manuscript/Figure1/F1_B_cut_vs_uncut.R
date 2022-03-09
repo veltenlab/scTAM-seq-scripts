@@ -3,8 +3,8 @@
 #' sample. Dropout is defined as those cells having 0 reads at this particular amplicon
 
 library(ggplot2)
-cut <- 'Sample11_70_percent_good_performance'
-uncut <- 'Sample12_70_percent_good_performance'
+cut <- 'GSM5935921_BM_HhaI'
+uncut <- 'GSM5935923_BM_undigested'
 plot.path <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                panel.grid=element_blank(),
@@ -34,13 +34,13 @@ colors_amplicons <- c("Mutation only"="#e5c494",
                       "Imprinted CpG"="#e78ac3",
                       "Imprinted CpG multiple"="#e78ac3",
                       "No HhaI cutsite"="#b3b3b3")
-dat_cut <- read.table(paste0('../../data/', cut, ".barcode.cell.distribution.tsv"), 
+dat_cut <- read.table(paste0('../../data/', cut, ".tsv.gz"), 
                   sep="\t", 
                   header=T)
 rowinfo <- read.csv(paste0('../../misc/', cut, '/tsv/rowinfo.csv'), row.names=1)
 non_doublets <- row.names(rowinfo)[which(rowinfo$DoubletDetectionLabel==0)]
 dat_cut <- dat_cut[non_doublets, ]
-dat_uncut <- read.table(paste0('../../data/', uncut, ".barcode.cell.distribution.tsv"), 
+dat_uncut <- read.table(paste0('../../data/', uncut, ".tsv.gz"), 
                       sep="\t", 
                       header=T)
 doublet <- read.csv(paste0('../../misc/', uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
@@ -99,4 +99,3 @@ ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, 
 
 selected_amplicons <- names(which(dropout_uncut>0.75 & ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff'))
 selected_amplicons <- ampli_info[selected_amplicons, ]                          
-write.table(selected_amplicons, paste0('../../data/', uncut, '/tsv/selected_amplicons.tsv'))

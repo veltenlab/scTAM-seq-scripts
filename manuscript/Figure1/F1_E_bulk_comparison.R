@@ -6,7 +6,7 @@
 
 library(ggplot2)
 plot_path <- '~'
-sample <- 'Sample11_70_percent_good_performance'
+sample <- 'GSM5935918_Blood_HhaI'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -18,6 +18,7 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
                legend.position='none')
 
+# These have to be computed, see the scripts in the folder dropout_correction
 means_clusters <- read.csv(file.path('../../dropout_modeling', sample, 'corrected_values.csv'),
                            row.names=1)
 more_info <- read.table('../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt')
@@ -26,8 +27,9 @@ joint_names <- intersect(row.names(more_info), row.names(means_clusters))
 means_clusters <- means_clusters[joint_names, ]
 row.names(means_clusters) <- more_info[row.names(means_clusters), 'background.cpgs']
 
+# To be downloaded from figshare
 load('../../data/meth.data.numeric.Rdata')
-cell_assignment <- read.table('../../data/MBC_assignment.txt')
+cell_assignment <- read.table('../../misc/MBC_assignment.txt')
 meth.data.numeric <- meth.data.numeric[,as.character(cell_assignment$V5)]
 means_csMBC <- apply(meth.data.numeric[row.names(means_clusters), cell_assignment$V2=='csMBC'], 1, mean)
 means_ncsMBC <- apply(meth.data.numeric[row.names(means_clusters), cell_assignment$V2=='ncsMBC'], 1, mean)

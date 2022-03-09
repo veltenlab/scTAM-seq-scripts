@@ -4,9 +4,11 @@
 
 library(ggplot2)
 library(rstan)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
 plot_path <- '~'
-cut <- 'Sample8_70_percent_good_performance'
-uncut <- 'Sample12_70_percent_good_performance'
+cut <- 'GSM5935918_Blood_HhaI'
+uncut <- 'GSM5935923_BM_undigested'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=15),
@@ -15,22 +17,23 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     axis.ticks=element_line(color='black'),
                     strip.background = element_blank(),
                     legend.key=element_rect(color='black', fill=NA))
-filtered.counts <- read.table(paste0(cut, "/tsv/", cut, ".barcode.cell.distribution.tsv"), 
+filtered.counts <- read.table(paste0('../data/', cut, ".tsv.gz"), 
                               sep="\t", 
                               header=T)
-cell_metadata <- read.csv(paste0(cut, '/tsv/rowinfo.csv'),
+cell_metadata <- read.csv(paste0('../misc/', cut, '/tsv/rowinfo.csv'),
                           row.names = 1)
 cell_metadata <- cell_metadata[]
 all.amplicons <- read.table('../misc/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 sel.amplicons <- row.names(all.amplicons[grepl('CpG.B.cell.diff', all.amplicons$Type.of.amplicon),])
-non_cut <- read.table(paste0(uncut, "/tsv/", uncut, ".barcode.cell.distribution.tsv"), 
+non_cut <- read.table(paste0('../data/', uncut, ".tsv.gz"), 
                       sep="\t", 
                       header=T)
-non_cut_doublets <- read.csv(paste0(uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
+non_cut_doublets <- read.csv(paste0('../misc/', uncut, '/tsv/doublet_scores_DoubletDetection.csv'))
 non_cut <- non_cut[non_cut_doublets[which(non_cut_doublets$DoubletDetectionLabel==0), 'Barcode'], ]
 allelic_dropout <- apply(non_cut[, sel.amplicons], 2, function(x){
   sum(x==0)/length(x)
 })
+sel.amplicons <- sel.amplicons[allelic_dropout>=0.2]
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), sel.amplicons]>0, 1, 0)
 
@@ -61,4 +64,10 @@ corrected_values <- sapply(sel.amplicons, function(ampli){
     Cluster2a=get_posterior_mean(sm_c2a)['m', 'mean-all chains'],
     Cluster2b=get_posterior_mean(sm_c2b)['m', 'mean-all chains'])
 })
-write.csv(t(corrected_values), file.path('dropout_modeling', cut, 'corrected_values.csv'))
+if(!dir.exists(file.path('../dropout_modeling'))){
+  dir.create(file.path('../dropout_modeling'))
+}
+if(!dir.exists(file.path('../dropout_modeling', cut))){
+  dir.create(file.path('../dropout_modeling', cut))
+}
+write.csv(t(corrected_values), file.path('../dropout_modeling', cut, 'corrected_values.csv'))

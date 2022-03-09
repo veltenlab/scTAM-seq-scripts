@@ -1,7 +1,7 @@
 ################### F1_D_heatmap.R ################################
 #' This file generates the binary DNAm heatmap.
 
-library(pheatmap)
+library(ComplexHeatmap)
 library(viridis)
 library(ggplot2)
 color_map <- list(CellType_broad=c('naive B-cells'='#fcbd7e',
@@ -23,9 +23,9 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     #strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
                     legend.position='none')
-sample <- 'Sample8_70_percent_good_performance'
-uncut <- 'Sample12_70_percent_good_performance'
-protein <- 'Sample8'
+sample <- 'GSM5935918_Blood_HhaI'
+uncut <- 'GSM5935923_BM_undigested'
+protein <- 'GSM5935919_Blood_HhaI_protein'
 plot_path <- '~'
 
 selected_amplicons <- read.table(paste0('../../misc/',
@@ -33,7 +33,7 @@ selected_amplicons <- read.table(paste0('../../misc/',
                               row.names = 1)
 rowinfo <- read.csv(paste0('../../misc/', sample, '/tsv/rowinfo.csv'),
                     row.names = 1)
-filtered.counts <- read.table(paste0('../../data/', sample, ".barcode.cell.distribution.tsv"),
+filtered.counts <- read.table(paste0('../../data/', sample, ".tsv.gz"),
                                      row.names = 1, header=T)
 
 bulk.methylation <- read.table("../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T)
@@ -44,16 +44,10 @@ selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_a
 png(file.path(plot_path, 'heatmap_complete.png'),
     width=1000,
     height=1600)
-ph <- pheatmap(selected_data, 
+pheatmap(selected_data, 
                annotation_col = subset(colinfo, select = c("NBC.mean",
                                                            "MBC.mean")),
-               annotation_row = subset(rowinfo, select = c("CellType",
-                                                           "Nfeatures")),
-                                                           #"CD10",
-                                                           #"CD27")),
-                                                           #"CD19", 
-                                                           #"CD34",
-                                                           #"CD45RA")), 
+               annotation_row = subset(rowinfo, select = c("CellType")),
                clustering_distance_cols = "binary", 
                clustering_distance_rows = "binary", 
                show_rownames = F, 
