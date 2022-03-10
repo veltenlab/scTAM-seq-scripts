@@ -36,32 +36,50 @@ allelic_dropout <- apply(non_cut[, sel.amplicons], 2, function(x){
 
 selected <- ifelse(filtered.counts[row.names(cell_metadata), sel.amplicons]>0, 1, 0)
 
-vals_c1 <- apply(selected[cell_metadata$Cluster%in%'Cluster1', ], 2, function(ampli){
+vals_c1 <- apply(selected[cell_metadata$CellType_detailed%in%'S1 cells', ], 2, function(ampli){
   c(sum(ampli==0),
     sum(ampli>0),
     sum(ampli>0)/length(ampli))
 })
-vals_c2a <- apply(selected[cell_metadata$Cluster%in%'Cluster2a', ], 2, function(ampli){
+vals_c2 <- apply(selected[cell_metadata$CellType_detailed%in%'S2 cells', ], 2, function(ampli){
   c(sum(ampli==0),
     sum(ampli>0),
     sum(ampli>0)/length(ampli))
 })
-vals_c2b <- apply(selected[cell_metadata$Cluster%in%'Cluster2b', ], 2, function(ampli){
+vals_c3 <- apply(selected[cell_metadata$CellType_detailed%in%'S3-S4 cells', ], 2, function(ampli){
+  c(sum(ampli==0),
+    sum(ampli>0),
+    sum(ampli>0)/length(ampli))
+})
+vals_c4 <- apply(selected[cell_metadata$CellType_detailed%in%'naive B-cells', ], 2, function(ampli){
   c(sum(ampli==0),
     sum(ampli>0),
     sum(ampli>0)/length(ampli))
 })
 
+vals_c5 <- apply(selected[cell_metadata$CellType_detailed%in%'memory B-cells', ], 2, function(ampli){
+  c(sum(ampli==0),
+    sum(ampli>0),
+    sum(ampli>0)/length(ampli))
+})
+
+
 corrected_values <- sapply(sel.amplicons, function(ampli){
   data_c1 <- list(n0=vals_c1[1, ampli], n1=vals_c1[2, ampli], p=allelic_dropout[ampli])
   sm_c1 <- stan("basic.stan", data = data_c1)
-  data_c2a <- list(n0=vals_c2a[1, ampli], n1=vals_c2a[2, ampli], p=allelic_dropout[ampli])
-  sm_c2a <- stan("basic.stan", data = data_c2a)
-  data_c2b <- list(n0=vals_c2b[1, ampli], n1=vals_c2b[2, ampli], p=allelic_dropout[ampli])
-  sm_c2b <- stan("basic.stan", data = data_c2b)
-  c(Cluster1=get_posterior_mean(sm_c1)['m', 'mean-all chains'],
-    Cluster2a=get_posterior_mean(sm_c2a)['m', 'mean-all chains'],
-    Cluster2b=get_posterior_mean(sm_c2b)['m', 'mean-all chains'])
+  data_c2 <- list(n0=vals_c2[1, ampli], n1=vals_c2[2, ampli], p=allelic_dropout[ampli])
+  sm_c2 <- stan("basic.stan", data = data_c2)
+  data_c3 <- list(n0=vals_c3[1, ampli], n1=vals_c3[2, ampli], p=allelic_dropout[ampli])
+  sm_c3 <- stan("basic.stan", data = data_c3)
+  data_c4 <- list(n0=vals_c4[1, ampli], n1=vals_c4[2, ampli], p=allelic_dropout[ampli])
+  sm_c4 <- stan("basic.stan", data = data_c4)
+  data_c5 <- list(n0=vals_c5[1, ampli], n1=vals_c5[2, ampli], p=allelic_dropout[ampli])
+  sm_c5 <- stan("basic.stan", data = data_c5)
+  c('S1 cells'=get_posterior_mean(sm_c1)['m', 'mean-all chains'],
+    'S2 cells'=get_posterior_mean(sm_c2)['m', 'mean-all chains'],
+    'S3-S4 cells'=get_posterior_mean(sm_c3)['m', 'mean-all chains'],
+    'naive B-cells'=get_posterior_mean(sm_c4)['m', 'mean-all chains'],
+    'memory B-cells'=get_posterior_mean(sm_c5)['m', 'mean-all chains'])
 })
 if(!dir.exists(file.path('../dropout_modeling'))){
   dir.create(file.path('../dropout_modeling'))

@@ -16,8 +16,8 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     legend.key=element_rect(color=NA, fill=NA),
                     axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
                legend.position='none')
-sample <- 'Sample12_70_percent_good_performance'
-means_clusters <- read.csv(paste0('../../dropout_modeling/', sample, '.csv'),
+sample <- 'GSM5935921_BM_HhaI'
+means_clusters <- read.csv(paste0('../../dropout_modeling/', sample, '/corrected_values.csv'),
                            row.names=1)
 colinfo <- read.table("../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt", header=T,
                       row.names=8)
@@ -50,14 +50,14 @@ cors <- t(as.data.frame(apply(to_plot, 1, function(x){
 to_plot$Correlation <- cors[,1]
 to_plot$CorrelationPVal <- cors[,2]
 to_plot$Bulk <- factor(to_plot$Bulk, levels=c('Progenitors', 'PreB', 'ImmatureB', 'naiveB', 'memoryB'))
-color_map <- c('Progenitors'='#bdfc7e',
-               'PreB'='#d7ef7e',
-               'ImmatureB'='#fcef7e',
-               'naiveB'='#fcbd7e',
-               'memoryB'='#fc6571')
-to_plot$SingleCell <- factor(to_plot$SingleCell, levels=c('S1cells', 'S2cells', 'S3S4cells', 'NaiveB', 'MemoryB'))
+color_map <- c('S1.cells'='#bdfc7e',
+               'S2.cells'='#d7ef7e',
+               'S3.S4.cells'='#fcef7e',
+               'naive.B.cells'='#fcbd7e',
+               'memory.B.cells'='#fc6571')
+to_plot$SingleCell <- factor(to_plot$SingleCell, levels=c('S1.cells', 'S2.cells', 'S3.S4.cells', 'naive.B.cells', 'memory.B.cells'))
 to_plot$Bulk <- factor(to_plot$Bulk, levels=c('Progenitors', 'PreB', 'ImmatureB', 'naiveB', 'memoryB'))
-plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='Bulk'))+geom_point(size=.1)+geom_smooth(method='lm',se=FALSE, size=.5)+xlim(0, 1)+ylim(0,1)+
+plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='SingleCell'))+geom_point(size=.1)+geom_smooth(method='lm',se=FALSE, size=.5)+xlim(0, 1)+ylim(0,1)+
   facet_wrap(SingleCell~Bulk, nrow=5)+
   geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), x=0.2, y=0.9, check_overlap=TRUE, color='black', size=1.75, fontface = "bold")+
   plot_theme+

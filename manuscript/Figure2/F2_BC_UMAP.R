@@ -10,7 +10,7 @@ library(SeuratWrappers)
 library(monocle3)
 library(viridis)
 library(gridExtra)
-sample <- 'Sample11_70_percent_good_performance'
+sample <- 'GSM5935921_BM_HhaI'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
                     text=element_text(color='black',size=6),
@@ -40,7 +40,7 @@ plot_theme_facet <- theme(panel.background = element_rect(color='black',fill='wh
                           legend.text = element_text(size=5),
                           plot.title=element_text(color='black',size=5),
                           axis.ticks.length=unit(.1, "cm"))
-dat <- read.table(paste0('../../data/', sample, '.barcode.cell.distribution.tsv'),
+dat <- read.table(paste0('../../data/', sample, '.tsv.gz'),
                   header = T)
 rowinfo <- read.csv(paste0("../../misc/", sample, "/tsv/rowinfo.csv"),
                     row.names = 1)

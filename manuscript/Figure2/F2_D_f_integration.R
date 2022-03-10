@@ -10,8 +10,8 @@ library(monocle3)
 library(viridis)
 library(gridExtra)
 library(RnBeads)
-sample <- 'Sample11_70_percent_good_performance'
-protein <- 'Sample11'
+sample <- 'GSM5935921_BM_HhaI'
+protein <- 'GSM5935922_BM_HhaI_protein'
 out.folder <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
@@ -28,7 +28,7 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     legend.text = element_text(color='black',size=5),
                     legend.position='none',
                     plot.title=element_blank())
-dat <- read.table(paste0('../../data/', sample, '.barcode.cell.distribution.tsv'),
+dat <- read.table(paste0('../../data/', sample, '.tsv.gz'),
                   header = T)
 rowinfo <- read.csv(paste0("../../misc/", sample, "/tsv/rowinfo.csv"),
                     row.names = 1)
@@ -40,14 +40,14 @@ dat <- ifelse(dat>0, 1, 0)
 seurat.obj <- CreateSeuratObject(t(dat),
                                  assay = "DNAm",
                                  meta.data = rowinfo)
-dat <- read.table(paste0('../../data/', sample, '.barcode.cell.distribution.tsv'),
+dat <- read.table(paste0('../../data/', sample, '.tsv.gz'),
                      header = T)
-ampli_info <- read.table('../..//Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
-rowinfo <- read.csv(paste0('../../', sample, '/tsv/rowinfo.csv'),
+ampli_info <- read.table('../../misc/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
+rowinfo <- read.csv(paste0('../../misc/', sample, '/tsv/rowinfo.csv'),
                     row.names = 1)
 dat <- dat[row.names(rowinfo), row.names(ampli_info)[ampli_info$Type.of.amplicon%in%'CpG.B.cell.diff']]
 out.folder <- '~'
-prot_data_all <- read.table(paste0('../../data/', protein),
+prot_data_all <- read.table(paste0('../../data/', protein, '.tsv.gz'),
                         header=TRUE)
 prot_data_all <- prot_data_all[prot_data_all$cell_barcode%in%row.names(rowinfo), ]
 prot_data <- matrix(nrow = nrow(rowinfo), ncol=length(unique(prot_data_all$ab_description)))
@@ -211,14 +211,14 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
                     legend.position='none')
-ct_map <- c('HSCs & MPPs'='S1cells',
-                               'Pre-pro-B cells'='S2cells',
-                               'Pro-B cells'='S2cells',
-                               'Pre-B cells'='S2cells',
-                              'Immature B cells'='S3S4cells',
-                                'Nonswitched memory B cells'='MemoryB',
-                              'Class switched memory B cells'='MemoryB',
-                               'Mature naive B cells'='NaiveB')
+ct_map <- c('HSCs & MPPs'='S1.cells',
+                               'Pre-pro-B cells'='S2.cells',
+                               'Pro-B cells'='S2.cells',
+                               'Pre-B cells'='S2.cells',
+                              'Immature B cells'='S3.S4.cells',
+                                'Nonswitched memory B cells'='memory.B.cells',
+                              'Class switched memory B cells'='memory.B.cells',
+                               'Mature naive B cells'='naive.B.cells')
 color_map <- c('NaiveB'='#fcbd7e',
                'MemoryB'='#fc3262',
                'S3S4cells'='#fcef7e',
@@ -228,7 +228,7 @@ Idents(sergio.obj) <- 'ct'
 cts_sergio <- ct_map[as.character(Idents(sergio.obj))]
 sergio.obj <- sergio.obj[, !is.na(cts_sergio)]
 cts_sergio <- cts_sergio[!is.na(cts_sergio)]
-meth_data <- read.csv(paste0('../../dropout_modeling/', sample, '.csv'),
+meth_data <- read.csv(paste0('../../dropout_modeling/', sample, '/corrected_values.csv'),
                       row.names=1)
 rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
 cluster_mean_meth <- t(meth_data)
@@ -242,26 +242,33 @@ to_plot <- data.frame(CellType=row.names(cluster_mean_rna),
 p_val <- cor.test(to_plot$CXCR5, to_plot$AMPL131040)$p.value
 plot <- ggplot(to_plot, aes(x=AMPL131040, y=CXCR5, color=CellType))+geom_point()+plot_theme+
   scale_color_manual(values=color_map)+annotate(geom='text', label=paste('R²:', format(p_val, digits=3)), x=0.5, y=0.35)
-ggsave('CXCR5_AMPL131040_scatterplot.pdf',
+ggsave(file.path(out.folder, 'CXCR5_AMPL131040_scatterplot.pdf'),
        plot,
        width=35,
        height=40,
        unit='mm')
 
 to_plot <- data.frame(CellType=row.names(cluster_mean_rna),
-                      CXCR5=cluster_mean_rna[, 'SMARCA4'],
-                      AMPL131040=cluster_mean_meth[, 'AMPL131282'])
+                      SMARCA4=cluster_mean_rna[, 'SMARCA4'],
+                      AMPL131282=cluster_mean_meth[, 'AMPL131282'])
 plot <- ggplot(to_plot, aes(x=AMPL131282, y=SMARCA4, color=CellType))+geom_point()+plot_theme+
   scale_color_manual(values=color_map)
+ggsave(file.path(out.folder, 'SMARCA4_AMPL131282_scatterplot.pdf'),
+       plot,
+       width=35,
+       height=40,
+       unit='mm')
+
 
 cts_seurat <- ct_map[seurat.obj[[]]$predicted.ct]
 Idents(sergio.obj) <- 'ct'
-cts_sergio <- ct_map[Idents(sergio.obj)]
-meth_data <- as.matrix(GetAssayData(seurat.obj, assay='DNAm'))
+cts_sergio <- ct_map[as.character(Idents(sergio.obj))]
+meth_data <- read.csv(paste0('../../dropout_modeling/', sample, '/corrected_values.csv'),
+                      row.names=1)
 rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
-cluster_mean_meth <- aggregate(t(meth_data), by=list(cts_seurat),  mean, na.rm=TRUE)
+cluster_mean_meth <- t(meth_data)
+rna_data <- as.matrix(GetAssayData(sergio.obj, assay='RNA'))
 cluster_mean_rna <- aggregate(t(rna_data), by=list(cts_sergio),  mean, na.rm=TRUE)
-rownames(cluster_mean_meth) <- cluster_mean_meth$Group.1
 cluster_mean_meth <- data.frame(cluster_mean_meth[,- 1])
 rownames(cluster_mean_rna) <- cluster_mean_rna$Group.1
 cluster_mean_rna <- data.frame(cluster_mean_rna[,- 1])
@@ -301,7 +308,7 @@ for(i in 1:length(colnames(cluster_mean_meth))){
   max_cor_gene <- c(max_cor_gene, max_cor)
   names(max_cor_gene)[length(max_cor_gene)] <- max_cor_name
 }
-
+max_cor_gene[max_cor_gene<0] <- NA
 amplicon_info <- read.table("../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt",
                             sep = '\t',
                             row.names=1,
@@ -312,14 +319,14 @@ ens_ids <- row.names(genes[unlist(sapply(names(max_cor_gene), function(x)grep(x,
 ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
 info <- data.frame(CpG=colnames(cluster_mean_meth),
                    Gene=names(max_cor_gene),
-                   CpG_chromosome=amplicon_info[colnames(cluster_mean_meth), 'Start.hg19'],
-                   CpG_start=amplicon_info[colnames(cluster_mean_meth), 'End.hg19'],
-                   CpG_end=amplicon_info[colnames(cluster_mean_meth), 'CpG_Names'],
-                   Gene_chromosome=genes[ens_ids, 'Chromosome'],
-                   Gene_start=genes[ens_ids, 'Start'],
-                   Gene_end=genes[ens_ids, 'End'],
-                   Correlation=max_cor_gene)
-write.csv(info, 'correlated_gene_information.csv')
+                   CpG_chromosome_hg19=amplicon_info[colnames(cluster_mean_meth), 'Start.hg19'],
+                   CpG_start_hg19=amplicon_info[colnames(cluster_mean_meth), 'End.hg19'],
+                   CpG_end_hg19=amplicon_info[colnames(cluster_mean_meth), 'CpG_Names'],
+                   Gene_chromosome_hg19=genes[ens_ids, 'Chromosome'],
+                   Gene_start_hg19=genes[ens_ids, 'Start'],
+                   Gene_end_hg19=genes[ens_ids, 'End'],
+                   Correlation=-max_cor_gene)
+write.csv(info, file.path(out.folder, 'correlated_gene_information.csv'))
 
 sel_cts <- c('HSCs & MPPs', 'Pre-B cells', 'Pro-B cells', 'Pre-pro-B cells', 'Immature B cells',
              'Mature naive B cells', 'Class switched memory B cells', 'Nonswitched memory B cells')
@@ -360,21 +367,6 @@ png('Triana_UMAP.png',
 p2
 dev.off()
 
-p1 <- FeaturePlot(seurat.obj, features='AMPL131219')
-p2 <- FeaturePlot(sergio.obj, features='AURKB', reduction='MOFAUMAP')
-p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
-p4 <- DimPlot(sergio.obj, group.by='TrianaCellType', reduction='MOFAUMAP')+scale_color_manual(values=color_map)
-png('correlation_ampli_gene_AURKB_positive.png',
-    height=2500, width=4000, res=300)
-grid.arrange(p1, p2, p3, p4, ncol=2)
-dev.off()
-
-p1 <- FeaturePlot(seurat.obj, features='AMPL131059')
-p2 <- FeaturePlot(sergio.obj, features='LTBR', reduction='Projected')
-p3 <- DimPlot(seurat.obj, group.by='predicted.ct')+scale_color_manual(values=color_map)
-p4 <- DimPlot(sergio.obj, group.by='ct', reduction='Projected')+scale_color_manual(values=color_map)
-grid.arrange(p1, p2, p3, p4, ncol=2)
-
 genes <- rnb.annotation2data.frame(rnb.get.annotation('genes', 'hg19'))
 ens_ids <- row.names(genes[unlist(sapply(colnames(cluster_mean_rna)[-1], function(x)grep(x, genes$symbol)[1])), ])
 ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
@@ -405,6 +397,7 @@ for(i in 1:length(colnames(cluster_mean_meth))){
   max_cor_gene <- c(max_cor_gene, max_cor)
   names(max_cor_gene)[length(max_cor_gene)] <- max_cor_name
 }
+max_cor_gene[max_cor_gene<0] <- NA
 amplicon_info <- read.table("../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt",
                             sep = '\t',
                             row.names=1,
@@ -415,14 +408,14 @@ ens_ids <- row.names(genes[unlist(sapply(names(max_cor_gene), function(x)grep(x,
 ens_ids <- gsub("[[:punct:]][[:alnum:]]", "", ens_ids)
 info <- data.frame(CpG=colnames(cluster_mean_meth),
                    Gene=names(max_cor_gene),
-                   CpG_chromosome=amplicon_info[colnames(cluster_mean_meth), 'Start.hg19'],
-                   CpG_start=amplicon_info[colnames(cluster_mean_meth), 'End.hg19'],
-                   CpG_end=amplicon_info[colnames(cluster_mean_meth), 'CpG_Names'],
-                   Gene_chromosome=genes[ens_ids, 'Chromosome'],
-                   Gene_start=genes[ens_ids, 'Start'],
-                   Gene_end=genes[ens_ids, 'End'],
+                   CpG_chromosome_hg19=amplicon_info[colnames(cluster_mean_meth), 'Start.hg19'],
+                   CpG_start_hg19=amplicon_info[colnames(cluster_mean_meth), 'End.hg19'],
+                   CpG_end_hg19=amplicon_info[colnames(cluster_mean_meth), 'CpG_Names'],
+                   Gene_chromosome_hg19=genes[ens_ids, 'Chromosome'],
+                   Gene_start_hg19=genes[ens_ids, 'Start'],
+                   Gene_end_hg19=genes[ens_ids, 'End'],
                    Correlation=max_cor_gene)
-write.csv(info, 'correlated_gene_information_positive.csv')
+write.csv(info, file.path(out.folder, 'correlated_gene_information_positive.csv'))
 
 DefaultAssay(sergio.obj) <- 'RNA'
 markers <- FindMarkers(sergio.obj, ident.1=c('HSCs & MPPs', 'Pre-B cells', 'Pro-B cells', 'Pre-pro-B cells', 'Immature B cells'),

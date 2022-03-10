@@ -54,17 +54,16 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     #strip.text.x = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
                     legend.position='none')
-sample <- 'Sample11_70_percent_good_performance'
-uncut <- 'Sample12_70_percent_good_performance'
-protein <- 'Sample11'
+sample <- 'GSM5935921_BM_HhaI'
+uncut <- 'GSM5935923_BM_undigested'
 plot_path <- '~'
 
 selected_amplicons <- read.table(paste0('../../misc/', uncut, '/tsv/selected_amplicons.tsv'),
                               row.names = 1)
-rowinfo <- read.csv(paste0('../../misc', sample, '/tsv/rowinfo.csv'),
+rowinfo <- read.csv(paste0('../../misc/', sample, '/tsv/rowinfo.csv'),
                      row.names = 1)
 rowinfo <- rowinfo[rowinfo$Doublet==0, ]
-filtered.counts <- read.table(paste0("../../data/", sample, ".barcode.cell.distribution.tsv"),
+filtered.counts <- read.table(paste0("../../data/", sample, ".tsv.gz"),
                                      row.names = 1, header=T)
 
 bulk.methylation <- read.table("../../misc/CpGs.value.per.amplicon.Blood.Bone.marrow.complete.array.data.txt",
@@ -82,7 +81,7 @@ selected_data <- ifelse(filtered.counts[row.names(rowinfo), row.names(selected_a
 png(file.path(plot_path, 'heatmap_complete.png'),
     width=1000,
     height=1600)
-ph <- pheatmap(selected_data, 
+pheatmap(selected_data, 
                annotation_col = subset(colinfo, select = c("S1.mean",
                                                            "S2.mean",
                                                            "S3.mean",
@@ -110,7 +109,7 @@ selected_data <- selected_data[which(rowinfo$CellType%in%'S2-S4 cells'), ]
 png(file.path(plot_path, 'heatmap_S2_S4_cluster.png'),
     width=1000,
     height=1600)
-ph <- pheatmap(selected_data, 
+pheatmap(selected_data, 
                annotation_col = subset(colinfo, select = c("S1.mean",
                                                            "S2.mean",
                                                            "S3.mean",
@@ -131,32 +130,3 @@ ph <- pheatmap(selected_data,
                labels_row = FALSE,
                labels_col = FALSE)
 dev.off()
-s2_s4_clust <- hclust(dist(selected_data, 'binary'), 'ward.D2')
-ct_detailed <- rowinfo$CellType
-names(ct_detailed) <- row.names(rowinfo)
-s2_s4_clust <- cutree(s2_s4_clust, 2)
-n_clust <- names(s2_s4_clust)
-s2_s4_clust<- c('1'='S2 cells',
-  '2'='S3-S4 cells')[s2_s4_clust]
-names(s2_s4_clust) <- n_clust
-ct_detailed[names(s2_s4_clust)] <- s2_s4_clust
-rowinfo[names(ct_detailed), 'CellType_detailed'] <- ct_detailed
-
-to_plot <- rowinfo[, -c(1:6, 8)]
-to_plot <- reshape2::melt(to_plot, id='CellType')
-plot <- ggplot(to_plot, aes(x=CellType, y=value))+geom_boxplot()+facet_wrap(variable~., nrow=5)+plot_theme
-ggsave(paste0(plot_path, 'AB_boxplots_cell_types.pdf'), plot)
-apply(rowinfo[, -c(1:8)], 2, function(x){
-  kruskal.test(x, g = rowinfo$CellType)$p.value
-})
-to_plot <- rowinfo[, -c(1:4, 6:8)]
-to_plot <- reshape2::melt(to_plot, id='Cluster')
-plot <- ggplot(to_plot, aes(x=Cluster, y=value))+geom_boxplot()+facet_wrap(variable~., nrow=5)+plot_theme
-ggsave(paste0(plot_path, 'AB_boxplots_cluster.pdf'), plot)
-apply(rowinfo[, -c(1:8)], 2, function(x){
-  kruskal.test(x, g = rowinfo$Cluster)$p.value
-})
-
-res <- apply(selected_data, 1, function(x){
-   sum(x>0)
-})
