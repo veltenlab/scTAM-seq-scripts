@@ -27,9 +27,9 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     legend.key=element_rect(color='black', fill=NA),
                     legend.position='none',
                     plot.title=element_blank())
-sample <- 'Sample11_70_percent_good_performance'
-protein <- 'Sample11.tsv'
-dat <- read.table(paste0('../../data/', sample, '.barcode.cell.distribution.tsv'),
+sample <- 'GSM5935921_BM_HhaI'
+protein <- 'GSM5935922_BM_HhaI_protein'
+dat <- read.table(paste0('../../data/', sample, '.tsv.gz'),
                      header = T)
 ampli_info <- read.table('../../misc/Blood.Bone.Marrow.Amplicons.design.dropout.added.selected.tsv')
 rowinfo <- read.csv(paste0('../../misc', sample, '/tsv/rowinfo.csv'),
