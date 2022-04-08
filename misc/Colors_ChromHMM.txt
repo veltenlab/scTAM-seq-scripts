@@ -1,0 +1,13 @@
+State	ShortLabel	LongLabel	Color	Color2	PreferredPosition
+E1	ActProm	Active_Promoter	255,0,0	FF0000	1
+E2	StrEnh1	Strong_Enhancer1	255,220,100	FFDC64	4
+E3	WkProm	Weak_Promoter	255,200,230	FFC8E6	2
+E4	PoisProm	Poised_Promoter	110,30,140	6E1E8C	3
+E5	WkEnh	Weak_Enhancer	255,255,0	FFFF00	6
+E6	StrEnh2	Strong_Enhancer2	255,130,0	FF8200	5
+E7	Txn_Trans	Transcription_Transition	0,140,100	008C64	7
+E8	Wk_Txn	Weak_Transcription	200,255,200	C8FFC8	9
+E9	Txn_Elong	Transcription_Elongation	0,255,0	00FF00	8
+E10	H3K9me3_Repr	H3K9me3_Repressed	120,120,120	787878	10
+E11	"Het;LowSign"	"Heterochromatin;Low_Signal"	240,240,240	F0F0F0	12
+E12	H3K27me3_Repr	H3K27me3_Repressed	170,170,170	AAAAAA	11
