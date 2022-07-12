@@ -66,7 +66,7 @@ color_map <- c('Cluster1'='#fcbd7e',
                'Cluster2b'='#8e008e')
 plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation', color='Cluster'))+geom_point(size=.1)+geom_smooth(method='lm',se=FALSE, size=.5)+xlim(0, 1)+ylim(0,1)+
   facet_wrap(Cluster~Bulk, nrow=4)+
-  geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), x=0.2, y=0.9, check_overlap=TRUE, color='black', size=1.75, fontface = "bold")+
+  geom_text(aes(label=paste('r:', format(Correlation, digits=2))), x=0.2, y=0.9, check_overlap=TRUE, color='black', size=1.75, fontface = "bold")+
   plot_theme+
   scale_color_manual(values=color_map)+ylab('Pseudo-bulk methylation')+xlab('Bulk methylation')
 ggsave(file.path(plot_path, 'F1_E_bulk_vs_singlecell.pdf'), plot, width=67, height=67, units='mm')

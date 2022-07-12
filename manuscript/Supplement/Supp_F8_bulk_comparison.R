@@ -60,7 +60,7 @@ to_plot$SingleCell <- factor(to_plot$SingleCell, levels=c('S1cells', 'S2cells', 
 to_plot$Bulk <- factor(to_plot$Bulk, levels=c('Progenitors', 'PreB', 'ImmatureB', 'naiveB', 'memoryB'))
 plot <- ggplot(to_plot, aes_string(x='BulkMethylation', y='Methylation'))+geom_point(aes(color=ifelse(Special=='Normal', 'gray10', 'black')), size=.1)+geom_smooth(method='lm',se=FALSE, size=.5, color='#808080')+xlim(0, 1)+ylim(0,1)+
   facet_wrap(SingleCell~Bulk, nrow=5)+
-  geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), x=0.2, y=0.9, check_overlap=TRUE, color='black', size=1.75, fontface = "bold")+
+  geom_text(aes(label=paste('r:', format(Correlation, digits=2))), x=0.2, y=0.9, check_overlap=TRUE, color='black', size=1.75, fontface = "bold")+
   plot_theme+ylab('Pseudo-bulk methylation')+xlab('Bulk methylation')
 ggsave(file.path(plot_path, 'F2_A_bulk_vs_singlecell.pdf'), plot, width=100, height=100, units='mm')
 

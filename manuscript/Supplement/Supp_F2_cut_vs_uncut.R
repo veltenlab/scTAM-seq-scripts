@@ -95,7 +95,7 @@ to_plot$Type <- factor(to_plot$Type, levels=c("No HhaI cutsite",
                                               "Differential CpG Bcells"))
 plot <- ggplot(to_plot, aes(x=Uncut, y=Cut, color=Type))+
   geom_point(size=.75)+geom_abline(slope=1, intercept=0, size=.25)+facet_wrap(Type~., nrow = 1)+
-  geom_text(aes(label=paste('R²:', format(Correlation, digits=2))), y=.95, x=0.2, geom='text', check_overlap=TRUE, color='black', size=2, fontface='bold')+
+  geom_text(aes(label=paste('r:', format(Correlation, digits=2))), y=.95, x=0.2, geom='text', check_overlap=TRUE, color='black', size=2, fontface='bold')+
   labs(x='Fraction of cells with reads in undigested sample', y='Fraction of cells with reads in digested sample', col='Amplicon Type')+
   plot_theme+scale_color_manual(values=colors_amplicons)
 ggsave(file.path(plot.path, 'F1_B_cut_vs_uncut_selected.pdf'), plot, width=120, height=38, units='mm')
