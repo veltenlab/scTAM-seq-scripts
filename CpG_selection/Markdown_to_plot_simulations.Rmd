@@ -1,0 +1,286 @@
+---
+title: "Simulation_test"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, error = F)
+```
+
+# Simulation test
+
+```{r, required packages}
+setwd("~")
+rm(list=ls())
+require(glmnet)
+require(pheatmap)
+require(ggplot2)
+require(parallel)
+require(tsne)
+library(gplots)
+```
+
+
+```{r, Set parameters}
+simulation.number<-10
+DROP <- 0.2
+FPR <- 0.1
+ALPHA <- 0.9
+s.adjusted <- exp(-4)
+```
+
+#download methylation data... 
+```{r, read data}
+data <- read.table("~/HhaI 1753 CpGs.txt",header = T)
+metadata <- read.table("~Samples_code_Dynamic_CpGs_v6.txt",sep="\t",header=T, stringsAsFactors = F)
+load("~/norm.beta.nov14.Rdata")
+
+data <- data[colnames(data) %in% metadata$Sample.ID]
+data <- data[,metadata$Sample.ID]
+data <- na.omit(data)
+```
+
+## Simulation of single-cell data
+
+```{r, simulate the data}
+
+#Define formula to simulate the data
+mean.by.celltype <- sapply(unique(metadata$Group), function(ct) apply(data[,metadata$Group == ct],1,mean))
+
+simulateCell <- function(celltype, dropout, fpr) {
+  
+  #throw a dice to determine if in this cell, the alleles are methylated
+  cpg.methylated.allele1 <- runif(nrow(mean.by.celltype)) < mean.by.celltype[,celltype]
+  cpg.methylated.allele2 <- runif(nrow(mean.by.celltype)) < mean.by.celltype[,celltype]
+  
+  #depending on the outcome, throw another coin to determine if the alleles are observed (or not)
+  rnum <- runif(length(cpg.methylated.allele1))
+  observed1 <- ifelse(cpg.methylated.allele1, 
+                      yes = rnum > dropout,
+                      no = rnum < FPR 
+  )
+  
+  rnum <- runif(length(cpg.methylated.allele2))
+  observed2 <- ifelse(cpg.methylated.allele2, 
+                      yes = rnum > dropout,
+                      no = rnum < FPR 
+  )
+  
+  observed <- observed1 | observed2
+  
+  return(observed)
+  
+}
+
+#simulate 100 cells of each cell type
+simulatedCells <- mclapply(rep(unique(metadata$Group), each =100), simulateCell, dropout = DROP, fpr= FPR, mc.cores = 6)
+simulatedCells <- do.call(cbind, simulatedCells)
+rownames(simulatedCells) <- rownames(mean.by.celltype)
+colnames(simulatedCells) <- paste(rep(unique(metadata$Group), each =100),1:ncol(simulatedCells), sep="_")
+
+simulatedCells.numeric <- apply(simulatedCells, 2, as.numeric)    
+dimnames(simulatedCells.numeric) <- dimnames(simulatedCells)
+write.table(simulatedCells.numeric, paste("Simulated.data.v", simulation.number, "drop", DROP, "fpr", FPR, "txt", sep="."), col.names=TRUE, row.names=TRUE, quote=FALSE)
+save(simulatedCells.numeric, file=paste("Simulated.data.v", simulation.number, "drop", DROP, "fpr", FPR, "Rdata", sep="."))
+```
+
+### t-SNE & heatmap on all simulated data
+
+```{r charts1, fig.width=5,fig.height=4}
+
+pca <- prcomp(t(simulatedCells.numeric))
+#pca.binary <- logisticPCA(simulatedCells, k =25, quiet = F, partial_decomp = T)
+tsne <- tsne(pca$x[,1:10])
+labels <- data.frame(row.names = colnames(simulatedCells), ct = rep(unique(metadata$Group), each =100), tsne)
+qplot(x = X1, y = X2, data= labels, color = ct) +theme_bw()
+```
+
+```{r charts2, fig.width=7,fig.height=7}
+simulatedCells.numeric <- apply(simulatedCells, 2, as.numeric)    
+dimnames(simulatedCells.numeric) <- dimnames(simulatedCells)
+pheatmap(simulatedCells.numeric, annotation_col = labels, clustering_distance_rows = "manhattan",clustering_distance_cols = "manhattan")
+```
+## Linear Regression Model
+
+```{r, regression, fig.width=5,fig.height=4}
+
+features <- as.matrix(t(simulatedCells.numeric))
+response <- as.factor(labels$ct)
+glmnet <- cv.glmnet(features, response, alpha = ALPHA, family = "multinomial")
+plot(glmnet)
+```
+
+### Selection of coefficients 
+
+Default lambda
+```{r, default lambda}
+coefs <- coef(glmnet)
+nonzero <- lapply(coefs, function(x) rownames(x)[which(x != 0)])
+use <- unique(unlist(nonzero))
+use <- use[use != "(Intercept)"]
+use1<-use
+rm(use)
+```
+
+Adjusted lambda
+```{r, adjusted lambda}
+coefs <- coef(glmnet, s=s.adjusted)
+nonzero <- lapply(coefs, function(x) rownames(x)[which(x != 0)])
+use <- unique(unlist(nonzero))
+use <- use[use != "(Intercept)"]
+use2<-use
+rm(use)
+```
+
+```{r, create list of CpGs}
+
+list1.half.CpGs <- read.table("~/Hha1.sites.S1.S4.comparisons.not.partially.methylated.S1.S4.CpGs.txt")
+
+list2.half.CpGs <- read.table("~Hha1.sites.S1.S4.comparisons.partially.methylated.S1.S4.CpGs.txt")
+
+use3 <- unique(unlist(c(use1, as.character(list1.half.CpGs[,1]), as.character(list2.half.CpGs[,1]))))
+use4 <- unique(unlist(c(use2, as.character(list1.half.CpGs[,1]), as.character(list2.half.CpGs[,1]))))
+
+#Save CpG lists 
+write.table(use1, paste("Selected.CpGs.v", simulation.number, "drop", DROP, "fpr", FPR, "lamba.default", "txt", sep="."), col.names=FALSE, row.names=FALSE, quote=FALSE)
+write.table(use2, paste("Selected.CpGs.v", simulation.number, "drop", DROP, "fpr", FPR, "lamba.adjusted", "txt", sep="."), col.names=FALSE, row.names=FALSE, quote=FALSE)
+write.table(use3, paste("Selected.CpGs.extended.v", simulation.number, "drop", DROP, "fpr", FPR, "lamba.default", "txt", sep="."), col.names=FALSE, row.names=FALSE, quote=FALSE)
+write.table(use4, paste("Selected.CpGs.extended.v", simulation.number, "drop", DROP, "fpr", FPR, "lamba.adjusted", "txt", sep="."), col.names=FALSE, row.names=FALSE, quote=FALSE)
+```
+
+### t-SNE on all simulated data using selected CpGs
+```{r t-SNE, fig.width=5,fig.height=4}
+#t-sne on all simulated data using selected CpGs
+pca <- prcomp(t(simulatedCells.numeric[use1,]))
+#pca.binary <- logisticPCA(simulatedCells, k =25, quiet = F, partial_decomp = T)
+tsne <- tsne(pca$x[,1:10])
+labels <- data.frame(row.names = colnames(simulatedCells), ct = rep(unique(metadata$Group), each =100), tsne)
+qplot(x = X1, y = X2, data= labels, color = ct) +theme_bw()
+
+pca <- prcomp(t(simulatedCells.numeric[use3,]))
+#pca.binary <- logisticPCA(simulatedCells, k =25, quiet = F, partial_decomp = T)
+tsne <- tsne(pca$x[,1:10])
+labels <- data.frame(row.names = colnames(simulatedCells), ct = rep(unique(metadata$Group), each =100), tsne)
+qplot(x = X1, y = X2, data= labels, color = ct) +theme_bw()
+
+pca <- prcomp(t(simulatedCells.numeric[use2,]))
+#pca.binary <- logisticPCA(simulatedCells, k =25, quiet = F, partial_decomp = T)
+tsne <- tsne(pca$x[,1:10])
+labels <- data.frame(row.names = colnames(simulatedCells), ct = rep(unique(metadata$Group), each =100), tsne)
+qplot(x = X1, y = X2, data= labels, color = ct) +theme_bw()
+
+pca <- prcomp(t(simulatedCells.numeric[use4,]))
+#pca.binary <- logisticPCA(simulatedCells, k =25, quiet = F, partial_decomp = T)
+tsne <- tsne(pca$x[,1:10])
+labels <- data.frame(row.names = colnames(simulatedCells), ct = rep(unique(metadata$Group), each =100), tsne)
+qplot(x = X1, y = X2, data= labels, color = ct) +theme_bw()
+```
+
+
+## Heatmaps with the original data
+```{r heatmaps, fig.width=5,fig.height=4}
+
+input.CpGs<-use1
+sample.colors<-c(rep("papayawhip",6), #s1
+                 rep("peachpuff1",6), #s2
+                 rep("peachpuff3",6), #s3
+                 rep("peachpuff4",4), #s4
+                 rep("green",5), #NBC.b
+                 rep("blue4",5), #mbc.cs
+                 rep("blue",5), #MBC.ncs
+                 rep("mediumpurple2",8), #PB
+                 rep("purple",3)) #pc
+
+hmcol=colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+color.breaks=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+data.heatmap <- beta[(rownames(beta) %in% input.CpGs),]
+data.heatmap <- data.heatmap[,match(metadata$Sample.ID, colnames(data.heatmap))]
+
+heatmap.2 (matrix(as.numeric(as.matrix(data.heatmap)), ncol = dim(data.heatmap)[2]),
+           Colv=T,
+           trace="none",
+           density.info="none",
+           col = hmcol,
+           breaks=color.breaks,
+           labRow = FALSE, labCol = FALSE,
+           ColSideColors=sample.colors)
+
+input.CpGs<-use3
+sample.colors<-c(rep("papayawhip",6), #s1
+                 rep("peachpuff1",6), #s2
+                 rep("peachpuff3",6), #s3
+                 rep("peachpuff4",4), #s4
+                 rep("green",5), #NBC.b
+                 rep("blue4",5), #mbc.cs
+                 rep("blue",5), #MBC.ncs
+                 rep("mediumpurple2",8), #PB
+                 rep("purple",3)) #pc
+
+hmcol=colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+color.breaks=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+data.heatmap <- beta[(rownames(beta) %in% input.CpGs),]
+data.heatmap <- data.heatmap[,match(metadata$Sample.ID, colnames(data.heatmap))]
+
+heatmap.2 (matrix(as.numeric(as.matrix(data.heatmap)), ncol = dim(data.heatmap)[2]),
+           Colv=T,
+           trace="none",
+           density.info="none",
+           col = hmcol,
+           breaks=color.breaks,
+           labRow = FALSE, labCol = FALSE,
+           ColSideColors=sample.colors)
+
+input.CpGs<-use2
+sample.colors<-c(rep("papayawhip",6), #s1
+                 rep("peachpuff1",6), #s2
+                 rep("peachpuff3",6), #s3
+                 rep("peachpuff4",4), #s4
+                 rep("green",5), #NBC.b
+                 rep("blue4",5), #mbc.cs
+                 rep("blue",5), #MBC.ncs
+                 rep("mediumpurple2",8), #PB
+                 rep("purple",3)) #pc
+
+hmcol=colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+color.breaks=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+data.heatmap <- beta[(rownames(beta) %in% input.CpGs),]
+data.heatmap <- data.heatmap[,match(metadata$Sample.ID, colnames(data.heatmap))]
+
+heatmap.2 (matrix(as.numeric(as.matrix(data.heatmap)), ncol = dim(data.heatmap)[2]),
+           Colv=T,
+           trace="none",
+           density.info="none",
+           col = hmcol,
+           breaks=color.breaks,
+           labRow = FALSE, labCol = FALSE,
+           ColSideColors=sample.colors)
+
+input.CpGs<-use4
+sample.colors<-c(rep("papayawhip",6), #s1
+                 rep("peachpuff1",6), #s2
+                 rep("peachpuff3",6), #s3
+                 rep("peachpuff4",4), #s4
+                 rep("green",5), #NBC.b
+                 rep("blue4",5), #mbc.cs
+                 rep("blue",5), #MBC.ncs
+                 rep("mediumpurple2",8), #PB
+                 rep("purple",3)) #pc
+
+hmcol=colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+color.breaks=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+
+data.heatmap <- beta[(rownames(beta) %in% input.CpGs),]
+data.heatmap <- data.heatmap[,match(metadata$Sample.ID, colnames(data.heatmap))]
+
+heatmap.2 (matrix(as.numeric(as.matrix(data.heatmap)), ncol = dim(data.heatmap)[2]),
+           Colv=T,
+           trace="none",
+           density.info="none",
+           col = hmcol,
+           breaks=color.breaks,
+           labRow = FALSE, labCol = FALSE,
+           ColSideColors=sample.colors)
+```
