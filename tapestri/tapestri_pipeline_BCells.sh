@@ -84,7 +84,7 @@ out_file=${output}/${name}.cellfinder.barcode.distribution.txt
 minus_5=${tmp_folder}/${name}_panel_minus_5.bed
 awk '{print $1 "\t" ($2 + 5) "\t" ($3 - 5) "\t" $4}' $panel_bed > $minus_5
 samtools view -@ $cores $in_file | grep -oP 'RG:Z:\K.+?\b' | sort | uniq -c | sort -n -r | awk '{$1=$1}1' > $count_file
-perl /users/lvelten/mscherer/conda/envs/tapestri/bin/resources/Perl/distribution_barcodes_amplicon.pl --amplicon-input $minus_5 --bam-input $in_file --output-r1 $out_file --output-r2 ${output}/${name}.r2.barcode.distribution.txt
+perl $TAPESTRI/bin/resources/Perl/distribution_barcodes_amplicon.pl --amplicon-input $minus_5 --bam-input $in_file --output-r1 $out_file --output-r2 ${output}/${name}.r2.barcode.distribution.txt
 
 # Running the R-script resembling CellFinder (our version)
 echo "###################################################################################################"
