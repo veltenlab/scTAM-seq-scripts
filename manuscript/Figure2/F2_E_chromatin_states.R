@@ -8,10 +8,10 @@ require(ggplot2)
 require(ggfortify)
 
 # read data
-load("../../colinfo_diff_cells.chrom.states.RData")
+load("../../misc/colinfo_diff_cells.chrom.states.RData")
 
 # read labels
-colors <- read.table("../../Colors_ChromHMM.txt",
+colors <- read.table("../../misc/Colors_ChromHMM.txt",
                      sep = "\t",
                      header=T)
 
@@ -152,7 +152,7 @@ chr.states.plot$Var1 <- c('E1E3'='active/weak promoter',
                           'E10'='H3K9me3-repressed',
                           'E11'='Heterochromatin-low',
                           'E12'='H3K9me3-repressed')[as.character(chr.states.plot$Var1)]
-cols <- c('active/weak promoter'='#ff0000',
+cols <- c('active/weak promoter'='#ff678c',
           'strong enhancer'='#ffdc64',
           'transcription'='#008c64',
           'poised promoter'='#6e1e8c',
