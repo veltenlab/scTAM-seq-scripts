@@ -25,7 +25,8 @@ conda env create -f rnbeads.yml -p $RNBEADS
 Depending whether you want to process bone marrow or Bcell data, you'll have to adapt the files run\_tapestri\_[BCells/BM].sh and tapestri\_pipeline\_[BCells/BM].sh, respectively. Please provide the paths to the downloaded files from GEO and an output folder.
 
 The following parameters have to be changed:
--$OUTPUT: should be set to the desired output directory
--$INPUT: should be set to the path, where the input FASTQ files are stored
--$TAPESTRI: should be the name or path of the tapestri conda environment
--$RNBEADS: should be the name or path of the RnBeads conda environment
+
+- $OUTPUT: should be set to the desired output directory
+- $INPUT: should be set to the path, where the input FASTQ files are stored
+- $TAPESTRI: should be the name or path of the tapestri conda environment
+- $RNBEADS: should be the name or path of the RnBeads conda environment
