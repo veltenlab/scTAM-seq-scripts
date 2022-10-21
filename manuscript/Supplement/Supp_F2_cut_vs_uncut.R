@@ -15,20 +15,15 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                strip.text.x = element_blank(),
                legend.key=element_rect(color=NA, fill=NA),
                legend.position='none')
-type_clear <- c("mut.only"="Mutation only",
+type_clear <- c("Other"="Other",
                 "NonHhaI"="No HhaI cutsite",
                 "CpG.B.cell.diff"="Differential CpG Bcells",
-                "CpG.MCL"="MCL-specific CpG",
-                "CpG.MCL.multiple.cutsites"="MCL-specific CpG",
                 "CpG.always.unmeth.B"="Always unmethylated CpG in Bcells",
-                "CpG.B.cell.diff.and.MCL"="Differential CpG Bcells AND MCL-specific CpG",        
                 "CpG.always.meth.B"="Always methylated CpG in Bcells",
                 "CpG.imprinted.multiple.cutsites"="Imprinted CpG multiple",
                 "CpG.imprinted"="Imprinted CpG")
-colors_amplicons <- c("Mutation only"="#e5c494",
+colors_amplicons <- c("Other"="#e5c494",
                       "Differential CpG Bcells"="#fc8d62",
-                      "MCL-specific CpG"="#ffd92f",
-                      "Differential CpG Bcells AND MCL-specific CpG"="#fc8d62",
                       "Always unmethylated CpG in Bcells"="#a6d854",
                       "Always methylated CpG in Bcells"="#66c2a5",
                       "Imprinted CpG"="#e78ac3",
@@ -58,13 +53,10 @@ dropout_uncut <- apply(dat_uncut[, in_all], 2, function(x){
   1-(sum(x==0)/length(x))
 })
 ampli_info <- ampli_info[in_all, ]
-type_clear <- c("mut.only"="Mutation only",
+type_clear <- c("Other"="Other",
                 "NonHhaI"="No HhaI cutsite",
                 "CpG.B.cell.diff"="Differential CpG Bcells",
-                "CpG.MCL"="MCL-specific CpG",
-                "CpG.MCL.multiple.cutsites"="MCL-specific CpG",
                 "CpG.always.unmeth.B"="Always unmethylated CpG in Bcells",
-                "CpG.B.cell.diff.and.MCL"="Differential CpG Bcells AND MCL-specific CpG",        
                 "CpG.always.meth.B"="Always methylated CpG in Bcells",
                 "CpG.imprinted.multiple.cutsites"="Imprinted CpG multiple",
                 "CpG.imprinted"="Imprinted CpG")
