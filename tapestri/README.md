@@ -1,5 +1,5 @@
 # Installation
-We use the downloaded version of the Mission Bio Tapestri platform (v2). This uses code from MissionBio, to which access has to be granted by MissionBio. Please contact the [maintainers](michael.scherer@crg.eu) of this pipeline for further instructions on the installation. Then, install the pipeline using the installation script. You will have to add some parts of the path, where the program has been installed to specific steps of the bash pipelines (variable $TAPESTRI).
+We use the downloaded version of the Mission Bio Tapestri platform (v2). This uses code from MissionBio, to which access has to be granted by MissionBio. Please contact the [maintainers](mailto:michael.scherer@crg.eu) of this pipeline for further instructions on the installation. Then, install the pipeline using the installation script. You will have to add some parts of the path, where the program has been installed to specific steps of the bash pipelines (variable $TAPESTRI).
 
 ```bash
 sh TapestriPipeline-v2.0.1-Linux-x86_64.sh $TAPESTRI
