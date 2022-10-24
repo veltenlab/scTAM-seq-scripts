@@ -15,8 +15,8 @@ protein <- 'GSM5935922_BM_HhaI_protein'
 out.folder <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=6),
-                    axis.text=element_text(color='black',size=5),
+                    text=element_text(color='black',size=7),
+                    axis.text=element_text(color='black',size=6),
                     axis.title=element_blank(),
                     axis.ticks=element_line(color='black', size=.1),
                     strip.background = element_blank(),
@@ -32,7 +32,7 @@ dat <- read.table(paste0('../../data/', sample, '.tsv.gz'),
                   header = T)
 rowinfo <- read.csv(paste0("../../misc/", sample, "/tsv/rowinfo.csv"),
                     row.names = 1)
-colinfo <- read.csv(paste0("../../misc/", sample, "/tsv/colinfo.csv"),
+colinfo <- read.csv(paste0("../../misc/GSM5935923_BM_undigested/tsv/colinfo.csv"),
                     row.names = 1)
 out.folder <- '~'
 dat <- dat[row.names(rowinfo), row.names(colinfo)]
