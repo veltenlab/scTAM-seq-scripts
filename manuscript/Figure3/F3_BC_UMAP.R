@@ -13,8 +13,8 @@ library(gridExtra)
 sample <- 'GSM5935921_BM_HhaI'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=6),
-                    axis.text=element_text(color='black',size=5),
+                    text=element_text(color='black',size=7),
+                    axis.text=element_text(color='black',size=6),
                     axis.title=element_blank(),
                     axis.ticks=element_line(color='black', size=.1),
                     strip.background = element_blank(),
@@ -25,8 +25,8 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
 plot_theme_facet <- theme(panel.background = element_rect(color='black',fill='white'),
                           panel.grid=element_blank(),
                           plot.background=element_blank(),
-                          text=element_text(color='black',size=6),
-                          axis.text=element_text(color='black',size=5),
+                          text=element_text(color='black',size=7),
+                          axis.text=element_text(color='black',size=6),
                           axis.title=element_blank(),
                           axis.ticks=element_line(color='black', size=.1),
                           strip.background = element_blank(),
@@ -36,15 +36,15 @@ plot_theme_facet <- theme(panel.background = element_rect(color='black',fill='wh
                           legend.key.size = unit(.1, 'cm'), 
                           legend.key.height = unit(.1, 'cm'), 
                           legend.key.width = unit(.1, 'cm'), 
-                          legend.title = element_text(size=6),
-                          legend.text = element_text(size=5),
-                          plot.title=element_text(color='black',size=5),
+                          legend.title = element_text(size=7),
+                          legend.text = element_text(size=6),
+                          plot.title=element_text(color='black',size=6),
                           axis.ticks.length=unit(.1, "cm"))
 dat <- read.table(paste0('../../data/', sample, '.tsv.gz'),
                   header = T)
 rowinfo <- read.csv(paste0("../../misc/", sample, "/tsv/rowinfo.csv"),
                     row.names = 1)
-colinfo <- read.csv(paste0("../../misc/",sample,"/tsv/colinfo.csv"),
+colinfo <- read.csv(paste0("../../misc/GSM5935923_BM_undigested/tsv/colinfo.csv"),
                     row.names = 1)
 out.folder <- '~'
 dat <- dat[row.names(rowinfo), row.names(colinfo)]
@@ -82,13 +82,11 @@ to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)
 to_plot <- data.frame(to_plot, seurat.obj[[]])
 to_plot <- to_plot[, c('UMAP_1',
                        'UMAP_2',
-                       'CD10',
-                       'CD19',
-                       'CD27',
                        'CD34',
+                       'CD10',
                        'CD38',
-                       'CD45RA',
-                       'CD90'                       )]
+                       'CD19',
+                       'CD27')]
 to_plot <- reshape2::melt(to_plot, id=c('UMAP_1', 'UMAP_2'))
 to_plot$value <- as.numeric(to_plot$value)
 plot_list <- list()
@@ -98,8 +96,10 @@ for(ab in unique(to_plot$variable)){
     plot_theme_facet+scale_color_viridis(option='mako', direction=-1)+ggtitle(ab)
   plot_list[[ab]] <- plot
 }
-png(file.path(out.folder,"UMAP_proteins.png"), width = 170, height = 40, units='mm', res=300)
-plots <- do.call(grid.arrange, c(plot_list, ncol = 7))
+plot_list[[6]] <- plot_list[[5]]
+plot_list[[5]] <- ggplot()+theme_void()
+png(file.path(out.folder,"UMAP_proteins.png"), width = 63, height = 82, units='mm', res=300)
+plots <- do.call(grid.arrange, c(plot_list, ncol = 2))
 dev.off()
 
 to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)

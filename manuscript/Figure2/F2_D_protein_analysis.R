@@ -6,8 +6,8 @@ library(ggplot2)
 plot_path <- '~'
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=6),
-                    axis.text=element_text(color='black',size=5),
+                    text=element_text(color='black',size=7),
+                    axis.text=element_text(color='black',size=6),
                     axis.ticks=element_line(color='black', size=.25),
                     strip.background = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
@@ -19,8 +19,8 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.spacing = unit(.1, "lines"))
 plot_scatter <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=6),
-                    axis.text=element_text(color='black',size=5),
+                    text=element_text(color='black',size=7),
+                    axis.text=element_text(color='black',size=6),
                     axis.ticks=element_line(color='black', size=.25),
                     strip.background = element_blank(),
                     legend.key=element_rect(color=NA, fill=NA),
@@ -29,7 +29,7 @@ color_map <- c('naive B-cells'='#fcbd7e',
                'ns-memory B-cells'='#fc3262',
                'cs-memory B-cells'='#8e008e')
 
-dat <- read.csv('../../GSM5935918_Blood_HhaI/tsv/rowinfo.csv',
+dat <- read.csv('../../GSM5935918_Blood_HhaI/tsv/rowinfo_NCS.csv',
                     row.names = 1)
 dat$CellType <- factor(as.character(dat$CellType), levels=c('naive B-cells',
                                                             'ns-memory B-cells',

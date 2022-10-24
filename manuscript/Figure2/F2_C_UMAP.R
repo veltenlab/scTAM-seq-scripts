@@ -20,8 +20,8 @@ cols <- c('naive B-cells'='#fcbd7e',
           'cs-memory B-cells'='#8e008e')
 plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
                     panel.grid=element_blank(),
-                    text=element_text(color='black',size=6),
-                    axis.text=element_text(color='black',size=5),
+                    text=element_text(color='black',size=7),
+                    axis.text=element_text(color='black',size=6),
                     axis.title=element_blank(),
                     axis.ticks=element_line(color='black', size=.1),
                     strip.background = element_blank(),
@@ -32,8 +32,8 @@ plot_theme <- theme(panel.background = element_rect(color='black',fill='white'),
 plot_theme_facet <- theme(panel.background = element_rect(color='black',fill='white'),
                           panel.grid=element_blank(),
                           plot.background=element_blank(),
-                          text=element_text(color='black',size=6),
-                          axis.text=element_text(color='black',size=5),
+                          text=element_text(color='black',size=7),
+                          axis.text=element_text(color='black',size=6),
                           axis.title=element_blank(),
                           axis.ticks=element_line(color='black', size=.1),
                           strip.background = element_blank(),
@@ -43,17 +43,17 @@ plot_theme_facet <- theme(panel.background = element_rect(color='black',fill='wh
                           legend.key.size = unit(.1, 'cm'), 
                           legend.key.height = unit(.1, 'cm'), 
                           legend.key.width = unit(.1, 'cm'), 
-                          legend.title = element_text(size=6),
-                          legend.text = element_text(size=5),
-                          plot.title=element_text(color='black',size=5),
+                          legend.title = element_text(size=7),
+                          legend.text = element_text(size=6),
+                          plot.title=element_text(color='black',size=6),
                           axis.ticks.length=unit(.1, "cm"))
 dat <- read.table(paste0('../../data/',sample,'.tsv.gz'),
                   header = T)
-rowinfo <- read.csv(paste0("../../misc/",sample,"/tsv/rowinfo.csv"),
+rowinfo <- read.csv(paste0("../../misc/",sample,"/tsv/rowinfo_NCS.csv"),
                     row.names = 1)
 rowinfo$ncBCellClustering_detailed <- rowinfo$ncBCellClustering
 rowinfo$ncBCellClustering_detailed[rowinfo$ncBCellClustering_detailed%in%'Other'] <- rowinfo$CellType[rowinfo$ncBCellClustering_detailed%in%'Other']
-colinfo <- read.csv(paste0("../../misc/",sample,"/tsv/colinfo.csv"),
+colinfo <- read.csv(paste0("../../misc/GSM5935923_BM_undigested/tsv/colinfo.csv"),
                     row.names = 1)
 out.folder <- '~'
 dat <- dat[row.names(rowinfo), row.names(colinfo)]
@@ -103,3 +103,18 @@ for(ab in unique(to_plot$variable)){
 png(file.path(out.folder,"UMAP_proteins.png"), width = 80, height = 28, units='mm', res=300)
 plots <- do.call(grid.arrange, c(plot_list, ncol = 2))
 dev.off()
+
+Idents(seurat.obj) <- 'ncBCellClustering_detailed'
+s1_cells <- names(Idents(seurat.obj)[Idents(seurat.obj)%in%'naive B-cells'])
+seurat.mono <- as.cell_data_set(seurat.obj)
+seurat.mono <- cluster_cells(cds = seurat.mono, reduction_method = "UMAP")
+seurat.mono <- learn_graph(seurat.mono, use_partition = FALSE, close_loop=FALSE)
+
+seurat.mono <- order_cells(seurat.mono, reduction_method = "UMAP", root_cells=s1_cells)
+
+to_plot <- as.data.frame(seurat.obj[['umap']]@cell.embeddings)
+to_plot <- data.frame(to_plot, Pseudotime=seurat.mono@principal_graph_aux$UMAP$pseudotime)
+plot <- ggplot(to_plot, aes(x=UMAP_1, y=UMAP_2, color=Pseudotime))+geom_point(size=.2, stroke=.2)+
+  plot_theme+scale_color_viridis(option='inferno')
+ggsave(file.path(out.folder,"UMAP_pseudotime.png"), width = 40, height = 45, unit='mm')
+
