@@ -22,3 +22,8 @@ In addition, you'll have to install the following R-packages
 ## [tapestri](tapestri)
 This contains the re-implementation of the Mission Bio tapestri pipeline to generate all of the files needed for downstream processing.
 
+# Citation
+
+If you use this software in your publication, please cite:
+
+Bianchi, A., Scherer, M., Zaurin, R. et al. scTAM-seq enables targeted high-confidence analysis of DNA methylation in single cells. Genome Biol 23, 229 (2022). [https://doi.org/10.1186/s13059-022-02796-7](https://doi.org/10.1186/s13059-022-02796-7)
